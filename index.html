@@ -2,174 +2,912 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Paradise Dashboard - User Management</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>Paradise Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f0f1a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Mobile First подход */
+        .mobile-container {
+            max-width: 100%;
+            padding: 12px;
+            padding-bottom: 80px;
+        }
+
+        /* Хедер */
+        .mobile-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .mobile-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        .mobile-header p {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        /* Поиск и фильтры */
+        .search-section {
+            margin-bottom: 16px;
+        }
+
+        .search-box {
+            background: #1a1a2e;
+            border-radius: 14px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #2d2d3f;
+        }
+
+        .search-box i {
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: #6b7280;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filters select {
+            flex: 1;
+            background: #1a1a2e;
+            border: 1px solid #2d2d3f;
+            border-radius: 12px;
+            padding: 10px 12px;
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Статистика - горизонтальный скролл */
+        .stats-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            margin-bottom: 16px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .stats-row {
+            display: inline-flex;
+            gap: 10px;
+            padding: 2px;
+        }
+
+        .stat-item {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 12px 16px;
+            min-width: 140px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #2d2d3f;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon i {
+            font-size: 1.2rem;
+        }
+
+        .stat-info h3 {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .stat-info p {
+            font-size: 0.7rem;
+            color: #9ca3af;
+        }
+
+        /* Переключатель вида */
+        .view-switch {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: #1a1a2e;
+            padding: 4px;
+            border-radius: 14px;
+            border: 1px solid #2d2d3f;
+        }
+
+        .view-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .view-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        /* Карточки пользователей (основной вид на мобильных) */
+        .users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .user-card {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid #2d2d3f;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .user-card:active {
+            transform: scale(0.98);
+            background: #22223b;
+        }
+
+        .user-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-username {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #2d2d3f;
+            font-size: 0.75rem;
+        }
+
+        .user-stats span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #9ca3af;
+        }
+
+        .user-stats i {
+            color: #667eea;
+            font-size: 0.7rem;
+        }
+
+        /* Таблица (скрыта на мобильных, видна на десктопе) */
+        .table-view {
+            display: none;
+            overflow-x: auto;
+        }
+
+        .table-view table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        .table-view th,
+        .table-view td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #2d2d3f;
+            font-size: 0.8rem;
+        }
+
+        .table-view th {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        /* Модалка */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2d2d3f;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h4 {
+            color: #9ca3af;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .detail-row {
+            background: #22223b;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .detail-row p {
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        /* Бургер меню */
+        .burger-menu {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .burger-btn {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 28px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .burger-btn:active {
+            transform: scale(0.92);
+        }
+
+        .burger-panel {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 12px;
+            min-width: 180px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 999;
+            border: 1px solid #2d2d3f;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .burger-panel.show {
+            display: flex;
+        }
+
+        .burger-item {
+            padding: 12px 16px;
+            background: #22223b;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .burger-item:active {
+            background: #2d2d3f;
+        }
+
+        /* Кнопка обновления внизу */
+        .refresh-fab {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .refresh-btn {
+            width: 56px;
+            height: 56px;
+            background: #1a1a2e;
+            border: 1px solid #2d2d3f;
+            border-radius: 28px;
+            color: #667eea;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Десктоп версия */
+        @media (min-width: 768px) {
+            .mobile-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            
+            .stats-scroll {
+                overflow-x: visible;
+            }
+            
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                width: 100%;
+            }
+            
+            .stat-item {
+                min-width: auto;
+            }
+            
+            .users-list {
+                display: none;
+            }
+            
+            .table-view {
+                display: block;
+            }
+            
+            .burger-menu,
+            .refresh-fab {
+                display: none;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+        }
+    </style>
 </head>
-<body data-theme="dark">
-    <div class="dashboard-container">
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" id="mobileMenuToggle">
-            <i class="fas fa-bars"></i>
-        </button>
-        
-        <div class="mobile-overlay" id="mobileOverlay"></div>
-        
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="logo">
-                <i class="fas fa-crown"></i>
-                <span>Paradise Dashboard</span>
-            </div>
-            <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-tab="users">
-                    <i class="fas fa-users"></i>
-                    <span>Пользователи</span>
-                </a>
-                <a href="#" class="nav-item" data-tab="analytics">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Аналитика</span>
-                </a>
-                <a href="#" class="nav-item" data-tab="geography">
-                    <i class="fas fa-globe"></i>
-                    <span>География</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="theme-toggle-wrapper">
-                    <button class="theme-toggle" id="themeToggle">
-                        <i class="fas fa-moon"></i>
-                        <span>Темная тема</span>
-                    </button>
-                </div>
-                <div class="last-update" id="lastUpdate">
-                    <i class="fas fa-sync-alt"></i>
-                    <span>Обновление...</span>
-                </div>
-                <button class="refresh-btn" id="refreshBtn">
-                    <i class="fas fa-arrow-rotate-right"></i>
-                    <span>Обновить</span>
-                </button>
-            </div>
-        </aside>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="mobile-header">
+            <h1>👑 Paradise Dashboard</h1>
+            <p id="statsText">Загрузка...</p>
+        </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="dashboard-header">
-                <div class="header-title">
-                    <h1>Управление пользователями</h1>
-                    <p id="statsText">Загрузка данных...</p>
-                </div>
-                <div class="header-actions">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Поиск по имени, username или ID...">
-                    </div>
-                    <div class="filter-group">
-                        <select id="countryFilter">
-                            <option value="">Все страны</option>
-                        </select>
-                        <select id="deviceFilter">
-                            <option value="">Все устройства</option>
-                            <option value="Desktop">💻 Desktop</option>
-                            <option value="Mobile">📱 Mobile</option>
-                            <option value="Tablet">📟 Tablet</option>
-                        </select>
-                    </div>
-                </div>
-            </header>
+        <!-- Search & Filters -->
+        <div class="search-section">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Поиск по имени или ID">
+            </div>
+            <div class="filters">
+                <select id="countryFilter">
+                    <option value="">🌍 Все страны</option>
+                </select>
+                <select id="deviceFilter">
+                    <option value="">📱 Все устройства</option>
+                    <option value="Desktop">💻 Desktop</option>
+                    <option value="Mobile">📱 Mobile</option>
+                    <option value="Tablet">📟 Tablet</option>
+                </select>
+            </div>
+        </div>
 
-            <!-- Stats Cards - Scrollable on mobile -->
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-user-plus"></i></div>
+        <!-- Stats -->
+        <div class="stats-scroll">
+            <div class="stats-row" id="statsRow">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
                     <div class="stat-info">
                         <h3 id="totalUsers">0</h3>
-                        <p>Всего пользователей</p>
+                        <p>Пользователей</p>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-item">
                     <div class="stat-icon"><i class="fas fa-eye"></i></div>
                     <div class="stat-info">
                         <h3 id="totalVisits">0</h3>
-                        <p>Всего визитов</p>
+                        <p>Визитов</p>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-item">
                     <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
                     <div class="stat-info">
                         <h3 id="totalCountries">0</h3>
                         <p>Стран</p>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
                     <div class="stat-info">
                         <h3 id="activeToday">0</h3>
-                        <p>Активны сегодня</p>
+                        <p>Сегодня</p>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- View Toggle -->
-            <div class="view-toggle-container">
-                <div class="view-toggle">
-                    <button class="toggle-btn active" data-view="table">
-                        <i class="fas fa-table"></i> <span>Таблица</span>
-                    </button>
-                    <button class="toggle-btn" data-view="cards">
-                        <i class="fas fa-th-large"></i> <span>Карточки</span>
-                    </button>
-                </div>
-            </div>
+        <!-- View Switch -->
+        <div class="view-switch">
+            <button class="view-btn active" data-view="cards">📱 Карточки</button>
+            <button class="view-btn" data-view="table">📊 Таблица</button>
+        </div>
 
-            <!-- Users Table View -->
-            <div class="users-table-container">
-                <div id="tableView" class="table-view active">
-                    <div class="table-wrapper">
-                        <table class="users-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Пользователь</th>
-                                    <th>Username</th>
-                                    <th>Визитов</th>
-                                    <th>Последний визит</th>
-                                    <th>Страна</th>
-                                    <th>Устройство</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody">
-                                <tr><td colspan="8" class="loading-cell">Загрузка пользователей...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- Cards View (mobile) -->
+        <div id="cardsView" class="users-list"></div>
 
-                <!-- Cards View -->
-                <div id="cardsView" class="cards-view">
-                    <div class="loading-state">Загрузка...</div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal для детальной информации -->
-    <div id="userModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Детальная информация</h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body" id="modalBody"></div>
+        <!-- Table View (desktop) -->
+        <div id="tableView" class="table-view">
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Имя</th><th>Username</th><th>Визитов</th><th>Страна</th><th></th></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Burger Menu -->
+    <div class="burger-menu">
+        <button class="burger-btn" id="burgerBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="burger-panel" id="burgerPanel">
+            <button class="burger-item" id="themeToggleBtn">
+                <i class="fas fa-moon"></i> Темная тема
+            </button>
+            <button class="burger-item" id="refreshBurgerBtn">
+                <i class="fas fa-sync-alt"></i> Обновить
+            </button>
+        </div>
+    </div>
+
+    <!-- Refresh FAB -->
+    <div class="refresh-fab">
+        <button class="refresh-btn" id="refreshFabBtn">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Детали пользователя</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // Конфиг
+        const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/CyberCold/Paradise/main/users.json';
+        
+        let usersData = [];
+        let filteredUsers = [];
+        let currentView = 'cards';
+        
+        // Загрузка данных
+        async function loadUsers() {
+            showLoading();
+            try {
+                const response = await fetch(GITHUB_RAW_URL, { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                usersData = Object.values(data);
+                filteredUsers = [...usersData];
+                updateStats();
+                populateCountryFilter();
+                renderUsers();
+                document.getElementById('statsText').innerHTML = `📊 ${usersData.length} пользователей • ${usersData.reduce((s,u)=>s+(u.visit_count||0),0)} визитов`;
+            } catch (error) {
+                document.getElementById('cardsView').innerHTML = `<div class="error">❌ Ошибка: ${error.message}<br><button onclick="loadUsers()" style="margin-top:10px;padding:10px;background:#667eea;border:none;border-radius:10px;color:white;">Повторить</button></div>`;
+            }
+        }
+        
+        function updateStats() {
+            const totalVisits = usersData.reduce((s,u) => s + (u.visit_count || 0), 0);
+            const countries = new Set();
+            const today = new Date().toISOString().split('T')[0];
+            let activeToday = 0;
+            
+            usersData.forEach(u => {
+                if (u.last_seen && new Date(u.last_seen).toISOString().split('T')[0] === today) activeToday++;
+                if (u.visits?.[0]?.country) countries.add(u.visits[0].country);
+                if (u.ips?.[0]?.country) countries.add(u.ips[0].country);
+            });
+            
+            document.getElementById('totalUsers').textContent = usersData.length;
+            document.getElementById('totalVisits').textContent = totalVisits;
+            document.getElementById('totalCountries').textContent = countries.size;
+            document.getElementById('activeToday').textContent = activeToday;
+        }
+        
+        function populateCountryFilter() {
+            const countries = new Set();
+            usersData.forEach(u => {
+                if (u.visits?.[0]?.country) countries.add(u.visits[0].country);
+                if (u.ips?.[0]?.country) countries.add(u.ips[0].country);
+            });
+            const select = document.getElementById('countryFilter');
+            Array.from(countries).sort().forEach(c => {
+                const option = document.createElement('option');
+                option.value = c;
+                option.textContent = c;
+                select.appendChild(option);
+            });
+        }
+        
+        function filterUsers() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const country = document.getElementById('countryFilter').value;
+            const device = document.getElementById('deviceFilter').value;
+            
+            filteredUsers = usersData.filter(u => {
+                const matchSearch = !search || u.id.toString().includes(search) || (u.first_name && u.first_name.toLowerCase().includes(search)) || (u.username && u.username.toLowerCase().includes(search));
+                let matchCountry = !country;
+                if (!matchCountry) matchCountry = (u.visits?.[0]?.country === country) || (u.ips?.[0]?.country === country);
+                let matchDevice = !device;
+                if (!matchDevice) matchDevice = u.visits?.[0]?.device === device;
+                return matchSearch && matchCountry && matchDevice;
+            });
+            renderUsers();
+        }
+        
+        function renderUsers() {
+            if (currentView === 'cards') {
+                renderCards();
+            } else {
+                renderTable();
+            }
+        }
+        
+        function truncate(str, maxLen) {
+            if (!str) return '—';
+            return str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
+        }
+        
+        function renderCards() {
+            const container = document.getElementById('cardsView');
+            if (filteredUsers.length === 0) {
+                container.innerHTML = '<div class="loading">👤 Пользователи не найдены</div>';
+                return;
+            }
+            
+            container.innerHTML = filteredUsers.map(user => {
+                const name = truncate(user.first_name || 'Без имени', 20);
+                const username = truncate(user.username || 'no_username', 20);
+                const country = user.visits?.[0]?.country || user.ips?.[0]?.country || '—';
+                const device = user.visits?.[0]?.device || '—';
+                const initials = (user.first_name || '?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+                
+                return `
+                    <div class="user-card" onclick="showUserDetails(${user.id})">
+                        <div class="user-card-header">
+                            <div class="user-avatar">${initials}</div>
+                            <div class="user-info">
+                                <div class="user-name">${escapeHtml(name)}</div>
+                                <div class="user-username">@${escapeHtml(username)}</div>
+                            </div>
+                        </div>
+                        <div class="user-stats">
+                            <span><i class="fas fa-chart-simple"></i> ${user.visit_count || 0} виз.</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${country}</span>
+                            <span><i class="fas fa-mobile-alt"></i> ${device}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">Нет данных</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filteredUsers.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${escapeHtml(truncate(user.first_name || '—', 15))}</td>
+                    <td>${escapeHtml(truncate(user.username || '—', 15))}</td>
+                    <td>${user.visit_count || 0}</td>
+                    <td>${user.visits?.[0]?.country || user.ips?.[0]?.country || '—'}</td>
+                    <td><button onclick="showUserDetails(${user.id})" style="padding:6px 12px;background:#667eea;border:none;border-radius:8px;color:white;">Детали</button></td>
+                </tr>
+            `).join('');
+        }
+        
+        window.showUserDetails = function(userId) {
+            const user = usersData.find(u => u.id === userId);
+            if (!user) return;
+            
+            const modal = document.getElementById('userModal');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalBody.innerHTML = `
+                <div class="detail-section">
+                    <h4>Основная информация</h4>
+                    <div class="detail-row">
+                        <p><strong>${escapeHtml(user.first_name || 'Без имени')}</strong></p>
+                        <p>@${escapeHtml(user.username || 'нет username')}</p>
+                        <p>ID: ${user.id}</p>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>Статистика</h4>
+                    <div class="detail-row">
+                        <p>📅 Регистрация: ${new Date(user.registered).toLocaleString()}</p>
+                        <p>🕐 Последний визит: ${new Date(user.last_seen).toLocaleString()}</p>
+                        <p>👁️ Всего визитов: ${user.visit_count || 0}</p>
+                    </div>
+                </div>
+                
+                ${user.ips && user.ips[0] ? `
+                <div class="detail-section">
+                    <h4>Геолокация</h4>
+                    <div class="detail-row">
+                        <p>🌍 Страна: ${user.ips[0].country || '—'}</p>
+                        <p>🏙️ Город: ${user.ips[0].city || '—'}</p>
+                        <p>📡 IP: ${user.ips[0].ip || '—'}</p>
+                        <p>🏢 ISP: ${user.ips[0].isp || '—'}</p>
+                    </div>
+                </div>
+                ` : ''}
+                
+                ${user.visits && user.visits[0] ? `
+                <div class="detail-section">
+                    <h4>Устройство</h4>
+                    <div class="detail-row">
+                        <p>💻 Устройство: ${user.visits[0].device || '—'}</p>
+                        <p>🌐 Браузер: ${user.visits[0].browser || '—'} ${user.visits[0].browser_version || ''}</p>
+                        <p>⚙️ ОС: ${user.visits[0].os || '—'}</p>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            modal.classList.add('active');
+        };
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function showLoading() {
+            document.getElementById('cardsView').innerHTML = '<div class="loading">⏳ Загрузка данных...</div>';
+        }
+        
+        // Тема
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            document.body.style.background = saved === 'dark' ? '#0f0f1a' : '#f0f0f0';
+            document.body.style.color = saved === 'dark' ? '#e2e8f0' : '#1a1a2e';
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.innerHTML = saved === 'dark' ? '<i class="fas fa-sun"></i> Светлая тема' : '<i class="fas fa-moon"></i> Темная тема';
+            }
+        }
+        
+        function toggleTheme() {
+            const isDark = document.body.style.background === 'rgb(15, 15, 26)';
+            const newTheme = isDark ? 'light' : 'dark';
+            document.body.style.background = newTheme === 'dark' ? '#0f0f1a' : '#f0f0f0';
+            document.body.style.color = newTheme === 'dark' ? '#e2e8f0' : '#1a1a2e';
+            localStorage.setItem('theme', newTheme);
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i> Светлая тема' : '<i class="fas fa-moon"></i> Темная тема';
+            }
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUsers();
+            initTheme();
+            
+            document.getElementById('searchInput').addEventListener('input', filterUsers);
+            document.getElementById('countryFilter').addEventListener('change', filterUsers);
+            document.getElementById('deviceFilter').addEventListener('change', filterUsers);
+            
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentView = btn.dataset.view;
+                    document.getElementById('cardsView').style.display = currentView === 'cards' ? 'flex' : 'none';
+                    document.getElementById('tableView').style.display = currentView === 'table' ? 'block' : 'none';
+                    renderUsers();
+                });
+            });
+            
+            document.getElementById('cardsView').style.display = 'flex';
+            document.getElementById('tableView').style.display = 'none';
+            
+            // Бургер меню
+            const burgerBtn = document.getElementById('burgerBtn');
+            const burgerPanel = document.getElementById('burgerPanel');
+            
+            burgerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                burgerPanel.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!burgerBtn.contains(e.target) && !burgerPanel.contains(e.target)) {
+                    burgerPanel.classList.remove('show');
+                }
+            });
+            
+            document.getElementById('themeToggleBtn').addEventListener('click', () => {
+                toggleTheme();
+                burgerPanel.classList.remove('show');
+            });
+            
+            document.getElementById('refreshBurgerBtn').addEventListener('click', () => {
+                loadUsers();
+                burgerPanel.classList.remove('show');
+            });
+            
+            document.getElementById('refreshFabBtn').addEventListener('click', () => {
+                loadUsers();
+            });
+            
+            // Модалка
+            const modal = document.getElementById('userModal');
+            document.querySelector('.modal-close').addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+        });
+    </script>
 </body>
 </html>
