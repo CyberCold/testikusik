@@ -7,430 +7,84 @@
     <title>Paradise Dashboard Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Chart.js для графиков -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Leaflet для карты -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0f0f1a;
-            color: #e2e8f0;
-            overflow-x: hidden;
-        }
-
-        .mobile-container {
-            max-width: 100%;
-            padding: 12px;
-            padding-bottom: 80px;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            background: #1a1a2e;
-            padding: 6px;
-            border-radius: 16px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 10px 12px;
-            border: none;
-            background: transparent;
-            color: #9ca3af;
-            font-size: 0.8rem;
-            border-radius: 12px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.1s;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Header */
-        .mobile-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .mobile-header h1 {
-            font-size: 1.3rem;
-            margin-bottom: 4px;
-        }
-
-        .header-stats {
-            display: flex;
-            gap: 12px;
-            margin-top: 10px;
-            font-size: 0.7rem;
-        }
-
-        .header-stats span {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 8px;
-            border-radius: 20px;
-        }
-
-        /* Search & Filters */
-        .search-section {
-            margin-bottom: 16px;
-        }
-
-        .search-box {
-            background: #1a1a2e;
-            border-radius: 14px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #2d2d3f;
-        }
-
-        .search-box input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .filters {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .filters select, .filters input {
-            flex: 1;
-            background: #1a1a2e;
-            border: 1px solid #2d2d3f;
-            border-radius: 12px;
-            padding: 10px 12px;
-            color: white;
-            font-size: 0.8rem;
-            outline: none;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .action-btn {
-            flex: 1;
-            padding: 10px;
-            background: #1a1a2e;
-            border: 1px solid #2d2d3f;
-            border-radius: 12px;
-            color: white;
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .action-btn.suspect {
-            background: #7f1a1a;
-            border-color: #991b1b;
-        }
-
-        .action-btn:active {
-            transform: scale(0.97);
-        }
-
-        /* Stats Grid */
-        .stats-scroll {
-            overflow-x: auto;
-            margin-bottom: 16px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .stats-row {
-            display: inline-flex;
-            gap: 10px;
-            padding: 2px;
-        }
-
-        .stat-item {
-            background: #1a1a2e;
-            border-radius: 16px;
-            padding: 12px 16px;
-            min-width: 130px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid #2d2d3f;
-        }
-
-        .stat-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .stat-info h3 {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .stat-info p {
-            font-size: 0.65rem;
-            color: #9ca3af;
-        }
-
-        /* Charts */
-        .chart-container {
-            background: #1a1a2e;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #2d2d3f;
-        }
-
-        .chart-container canvas {
-            max-height: 200px;
-            width: 100%;
-        }
-
-        /* Map */
-        #geoMap {
-            height: 300px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            z-index: 1;
-        }
-
-        /* Users List */
-        .users-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .user-card {
-            background: #1a1a2e;
-            border-radius: 16px;
-            padding: 14px;
-            border: 1px solid #2d2d3f;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        .user-card.suspect-bot {
-            border-left: 3px solid #ef4444;
-            background: #1f1a2e;
-        }
-
-        .user-card:active {
-            transform: scale(0.98);
-        }
-
-        .user-card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-
-        .user-avatar {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-stats {
-            display: flex;
-            gap: 12px;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #2d2d3f;
-            font-size: 0.7rem;
-            flex-wrap: wrap;
-        }
-
-        .user-stats span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: #9ca3af;
-        }
-
-        .bot-badge {
-            background: #ef4444;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.65rem;
-            margin-left: 8px;
-        }
-
-        /* Smart Tips */
-        .smart-tips {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 16px;
-            border: 1px solid #2d2d3f;
-        }
-
-        .tip-item {
-            font-size: 0.75rem;
-            padding: 8px 0;
-            border-bottom: 1px solid #2d2d3f;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .tip-item:last-child {
-            border-bottom: none;
-        }
-
-        .tip-icon {
-            width: 24px;
-            text-align: center;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 2000;
-            overflow-y: auto;
-        }
-
-        .modal.active {
-            display: block;
-        }
-
-        .modal-content {
-            background: #1a1a2e;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #2d2d3f;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-            width: 44px;
-            height: 44px;
-        }
-
-        .timeline-item {
-            background: #22223b;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 8px;
-        }
-
-        .block-btn {
-            background: #ef4444;
-            border: none;
-            padding: 10px;
-            border-radius: 12px;
-            color: white;
-            width: 100%;
-            margin-top: 16px;
-            cursor: pointer;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #0f0f1a; color: #e2e8f0; overflow-x: hidden; }
+        .mobile-container { max-width: 100%; padding: 12px; padding-bottom: 80px; }
+        
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; background: #1a1a2e; padding: 6px; border-radius: 16px; overflow-x: auto; }
+        .tab-btn { flex: 1; padding: 10px 12px; border: none; background: transparent; color: #9ca3af; font-size: 0.8rem; border-radius: 12px; cursor: pointer; white-space: nowrap; }
+        .tab-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .mobile-header { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 20px; padding: 16px; margin-bottom: 16px; }
+        .mobile-header h1 { font-size: 1.3rem; margin-bottom: 4px; }
+        .header-stats { display: flex; gap: 12px; margin-top: 10px; font-size: 0.7rem; flex-wrap: wrap; }
+        .header-stats span { background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 20px; }
+        
+        .search-section { margin-bottom: 16px; }
+        .search-box { background: #1a1a2e; border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border: 1px solid #2d2d3f; }
+        .search-box input { flex: 1; background: none; border: none; color: white; font-size: 0.9rem; outline: none; }
+        .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filters select, .filters input { flex: 1; background: #1a1a2e; border: 1px solid #2d2d3f; border-radius: 12px; padding: 10px 12px; color: white; font-size: 0.8rem; outline: none; }
+        
+        .action-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
+        .action-btn { flex: 1; padding: 10px; background: #1a1a2e; border: 1px solid #2d2d3f; border-radius: 12px; color: white; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .action-btn.suspect { background: #7f1a1a; border-color: #991b1b; }
+        .action-btn:active { transform: scale(0.97); }
+        
+        .stats-scroll { overflow-x: auto; margin-bottom: 16px; -webkit-overflow-scrolling: touch; }
+        .stats-row { display: inline-flex; gap: 10px; padding: 2px; }
+        .stat-item { background: #1a1a2e; border-radius: 16px; padding: 12px 16px; min-width: 130px; display: inline-flex; align-items: center; gap: 10px; border: 1px solid #2d2d3f; }
+        .stat-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .stat-info h3 { font-size: 1.2rem; font-weight: bold; }
+        .stat-info p { font-size: 0.65rem; color: #9ca3af; }
+        
+        .chart-container { background: #1a1a2e; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid #2d2d3f; }
+        .chart-container canvas { max-height: 200px; width: 100%; }
+        
+        #geoMap { height: 350px; border-radius: 16px; margin-bottom: 16px; z-index: 1; }
+        
+        .users-list { display: flex; flex-direction: column; gap: 12px; }
+        .user-card { background: #1a1a2e; border-radius: 16px; padding: 14px; border: 1px solid #2d2d3f; cursor: pointer; }
+        .user-card:active { transform: scale(0.98); }
+        .user-card.suspect-bot { border-left: 3px solid #ef4444; background: #1f1a2e; }
+        .user-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .user-avatar { width: 48px; height: 48px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; flex-shrink: 0; }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-stats { display: flex; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #2d2d3f; font-size: 0.7rem; flex-wrap: wrap; }
+        .user-stats span { display: flex; align-items: center; gap: 5px; color: #9ca3af; }
+        .bot-badge { background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; margin-left: 8px; }
+        
+        .smart-tips { background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 16px; padding: 12px; margin-bottom: 16px; border: 1px solid #2d2d3f; }
+        .tip-item { font-size: 0.75rem; padding: 8px 0; border-bottom: 1px solid #2d2d3f; display: flex; align-items: center; gap: 8px; }
+        .tip-item:last-child { border-bottom: none; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 2000; overflow-y: auto; }
+        .modal.active { display: block; }
+        .modal-content { background: #1a1a2e; min-height: 100vh; padding: 20px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #2d2d3f; }
+        .modal-close { background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; width: 44px; height: 44px; }
+        .detail-section { margin-bottom: 20px; }
+        .detail-row { background: #22223b; border-radius: 12px; padding: 12px; margin-bottom: 8px; word-break: break-word; }
+        .timeline-item { background: #22223b; border-radius: 12px; padding: 12px; margin-bottom: 8px; font-size: 0.8rem; }
+        .block-btn { background: #ef4444; border: none; padding: 12px; border-radius: 12px; color: white; width: 100%; margin-top: 16px; cursor: pointer; }
+        
         @media (min-width: 768px) {
-            .mobile-container {
-                max-width: 1400px;
-                margin: 0 auto;
-                padding: 20px;
-            }
-            .stats-row {
-                display: grid;
-                grid-template-columns: repeat(5, 1fr);
-                width: 100%;
-            }
-            .stat-item {
-                min-width: auto;
-            }
-            .users-list {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            }
+            .mobile-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+            .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); width: 100%; }
+            .stat-item { min-width: auto; }
+            .users-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); }
         }
     </style>
 </head>
 <body>
     <div class="mobile-container">
-        <!-- Header -->
         <div class="mobile-header">
             <h1>👑 Paradise Dashboard Pro</h1>
             <div class="header-stats">
@@ -439,21 +93,15 @@
             </div>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
             <button class="tab-btn active" data-tab="users">👥 Пользователи</button>
             <button class="tab-btn" data-tab="analytics">📊 Аналитика</button>
             <button class="tab-btn" data-tab="map">🗺️ Геокарта</button>
         </div>
 
-        <!-- Tab: Users -->
         <div id="tab-users" class="tab-content active">
-            <!-- Smart Tips -->
-            <div class="smart-tips" id="smartTips">
-                <div class="tip-item"><span class="tip-icon">💡</span> Анализирую данные...</div>
-            </div>
+            <div class="smart-tips" id="smartTips"><div class="tip-item">💡 Анализирую данные...</div></div>
 
-            <!-- Search & Filters -->
             <div class="search-section">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
@@ -464,57 +112,42 @@
                     <input type="date" id="lastSeenFilter" placeholder="После даты">
                     <select id="deviceFilter"><option value="">📱 Все устройства</option>
                         <option value="Desktop">💻 Desktop</option><option value="Mobile">📱 Mobile</option>
-                        <option value="Tablet">📟 Tablet</option></select>
+                        <option value="iPhone">📱 iPhone</option><option value="Tablet">📟 Tablet</option></select>
                 </div>
             </div>
 
-            <!-- Action Buttons -->
             <div class="action-buttons">
                 <button class="action-btn" id="refreshBtn"><i class="fas fa-sync-alt"></i> Обновить</button>
                 <button class="action-btn suspect" id="suspectBtn"><i class="fas fa-robot"></i> Подозрительные</button>
             </div>
 
-            <!-- Stats -->
             <div class="stats-scroll">
                 <div class="stats-row">
-                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-info"><h3 id="totalUsers">0</h3><p>Всего</p></div></div>
-                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-                        <div class="stat-info"><h3 id="dailyActive">0</h3><p>Сегодня</p></div></div>
-                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-chart-simple"></i></div>
-                        <div class="stat-info"><h3 id="weeklyActive">0</h3><p>За неделю</p></div></div>
-                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-calendar-week"></i></div>
-                        <div class="stat-info"><h3 id="monthlyActive">0</h3><p>За месяц</p></div></div>
-                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-percent"></i></div>
-                        <div class="stat-info"><h3 id="retentionRate">0%</h3><p>Удержание</p></div></div>
+                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3 id="totalUsers">0</h3><p>Всего</p></div></div>
+                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-info"><h3 id="dailyActive">0</h3><p>Сегодня</p></div></div>
+                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-chart-simple"></i></div><div class="stat-info"><h3 id="weeklyActive">0</h3><p>За неделю</p></div></div>
+                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-calendar-week"></i></div><div class="stat-info"><h3 id="monthlyActive">0</h3><p>За месяц</p></div></div>
+                    <div class="stat-item"><div class="stat-icon"><i class="fas fa-percent"></i></div><div class="stat-info"><h3 id="retentionRate">0%</h3><p>Удержание</p></div></div>
                 </div>
             </div>
 
-            <!-- Users List -->
             <div id="usersList" class="users-list"></div>
         </div>
 
-        <!-- Tab: Analytics -->
         <div id="tab-analytics" class="tab-content">
-            <div class="chart-container">
-                <canvas id="hourlyChart"></canvas>
-            </div>
-            <div class="chart-container">
-                <canvas id="retentionChart"></canvas>
-            </div>
+            <div class="chart-container"><canvas id="hourlyChart"></canvas></div>
+            <div class="chart-container"><canvas id="retentionChart"></canvas></div>
             <div class="smart-tips">
-                <div class="tip-item"><span class="tip-icon">📈</span> <span id="peakHourText">Анализирую пик активности...</span></div>
-                <div class="tip-item"><span class="tip-icon">🔄</span> <span id="retentionText">Анализирую удержание...</span></div>
+                <div class="tip-item"><span class="tip-icon">📈</span> <span id="peakHourText">Анализирую...</span></div>
+                <div class="tip-item"><span class="tip-icon">🔄</span> <span id="retentionText">Анализирую...</span></div>
             </div>
         </div>
 
-        <!-- Tab: Map -->
         <div id="tab-map" class="tab-content">
             <div id="geoMap"></div>
         </div>
     </div>
 
-    <!-- Modal -->
     <div id="userModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h2>Детали пользователя</h2><button class="modal-close">&times;</button></div>
@@ -523,15 +156,10 @@
     </div>
 
     <script>
-        // ============ КОНФИГ ============
         const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/CyberCold/Paradise/main/users.json';
-        let usersData = [];
-        let filteredUsers = [];
-        let autoUpdateInterval = null;
-        let updateTimer = 30;
-        let hourlyChart, retentionChart;
-        let map = null;
-        let mapMarkers = [];
+        let usersData = [], filteredUsers = [];
+        let autoUpdateInterval = null, updateTimer = 30;
+        let hourlyChart, retentionChart, map = null, mapMarkers = [];
 
         // ============ ЗАГРУЗКА ============
         async function loadUsers() {
@@ -548,11 +176,21 @@
                 updateSmartTips();
                 populateFilters();
                 renderUsers();
-                
                 startAutoUpdateTimer();
             } catch (error) {
-                document.getElementById('usersList').innerHTML = `<div class="loading">❌ Ошибка: ${error.message}</div>`;
+                document.getElementById('usersList').innerHTML = `<div class="loading">❌ Ошибка: ${error.message}<br><button onclick="loadUsers()" style="margin-top:10px;padding:10px;background:#667eea;border:none;border-radius:10px;">Повторить</button></div>`;
             }
+        }
+
+        // ============ ПОЛУЧЕНИЕ ДАННЫХ ИЗ РАЗНЫХ ПОЛЕЙ ============
+        function getUserCity(user) { return user.ips?.[0]?.city || user.visits?.[0]?.city || user.request_history?.[0]?.city || null; }
+        function getUserCountry(user) { return user.ips?.[0]?.country || user.visits?.[0]?.country || user.request_history?.[0]?.country || '—'; }
+        function getUserDevice(user) { return user.visits?.[0]?.device || user.request_history?.[0]?.headers?.['user-agent']?.includes('iPhone') ? 'iPhone' : '—'; }
+        function getUserIP(user) { return user.ips?.[0]?.ip || user.request_history?.[0]?.ip || '—'; }
+        function getUserISP(user) { return user.ips?.[0]?.isp || '—'; }
+        function getLatLon(city) {
+            const coords = { 'Riga': [56.9496, 24.1052], 'Moscow': [55.7558, 37.6173], 'London': [51.5074, -0.1278], 'New York': [40.7128, -74.0060] };
+            return coords[city] || null;
         }
 
         // ============ СТАТИСТИКА ============
@@ -560,9 +198,7 @@
             const today = new Date().toISOString().split('T')[0];
             const weekAgo = new Date(Date.now() - 7*86400000).toISOString();
             const monthAgo = new Date(Date.now() - 30*86400000).toISOString();
-            
-            let daily = 0, weekly = 0, monthly = 0;
-            let newToday = 0;
+            let daily = 0, weekly = 0, monthly = 0, newToday = 0;
             
             usersData.forEach(u => {
                 if (u.last_seen && u.last_seen.split('T')[0] === today) daily++;
@@ -571,7 +207,6 @@
                 if (u.registered && u.registered.split('T')[0] === today) newToday++;
             });
             
-            // Retention: пользователи, вернувшиеся через 7 дней
             let returned = 0, totalOld = 0;
             usersData.forEach(u => {
                 if (u.registered && new Date(u.registered) < new Date(Date.now() - 7*86400000)) {
@@ -591,13 +226,10 @@
 
         // ============ ГРАФИКИ ============
         function updateCharts() {
-            // Активность по часам
             const hourCounts = new Array(24).fill(0);
             usersData.forEach(u => {
-                if (u.visits && u.visits[0] && u.visits[0].timestamp) {
-                    const hour = new Date(u.visits[0].timestamp).getHours();
-                    hourCounts[hour]++;
-                }
+                const ts = u.visits?.[0]?.timestamp || u.last_seen;
+                if (ts) hourCounts[new Date(ts).getHours()]++;
             });
             
             if (hourlyChart) hourlyChart.destroy();
@@ -607,7 +239,6 @@
                 options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#e2e8f0' } } } }
             });
             
-            // Retention (дни)
             const retentionData = [100];
             for (let day = 1; day <= 7; day++) {
                 let returned = 0, total = 0;
@@ -617,7 +248,8 @@
                         const checkDate = new Date(regDate.getTime() + day*86400000);
                         if (checkDate < new Date()) {
                             total++;
-                            if (u.visits && u.visits.some(v => new Date(v.timestamp) >= checkDate)) returned++;
+                            const visits = u.visits || [];
+                            if (visits.some(v => new Date(v.timestamp) >= checkDate)) returned++;
                         }
                     }
                 });
@@ -632,115 +264,95 @@
                 options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#e2e8f0' } } } }
             });
             
-            // Пик активности
             const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
             document.getElementById('peakHourText').textContent = `📊 Пик активности в ${peakHour}:00 (${Math.max(...hourCounts)} пользователей)`;
             document.getElementById('retentionText').textContent = `📈 Удержание на 7 день: ${retentionData[7]}%`;
         }
 
-        // ============ ГЕОКАРТА ============
+        // ============ КАРТА (с городами из твоего JSON) ============
         function updateMap() {
             if (!map) {
-                map = L.map('geoMap').setView([20, 0], 2);
+                map = L.map('geoMap').setView([56.9496, 24.1052], 5);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
                 }).addTo(map);
             }
             
-            // Очистить маркеры
             mapMarkers.forEach(m => map.removeLayer(m));
             mapMarkers = [];
             
-            const cityCounts = new Map();
+            const cityData = new Map();
             usersData.forEach(u => {
-                const city = u.ips?.[0]?.city || u.visits?.[0]?.city;
-                const lat = u.ips?.[0]?.lat || u.visits?.[0]?.lat;
-                const lng = u.ips?.[0]?.lon || u.visits?.[0]?.lon;
-                if (city && lat && lng) {
-                    const key = `${city}|${lat}|${lng}`;
-                    cityCounts.set(key, (cityCounts.get(key) || 0) + 1);
+                const city = getUserCity(u);
+                const country = getUserCountry(u);
+                if (city && country) {
+                    const key = `${city}|${country}`;
+                    cityData.set(key, (cityData.get(key) || 0) + 1);
                 }
             });
             
-            cityCounts.forEach((count, key) => {
-                const [city, lat, lng] = key.split('|');
-                const marker = L.circleMarker([parseFloat(lat), parseFloat(lng)], {
-                    radius: Math.min(20, 5 + count),
-                    fillColor: '#667eea',
-                    color: '#764ba2',
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.6
-                }).addTo(map);
-                marker.bindPopup(`${city}<br>👥 ${count} пользователей`);
-                mapMarkers.push(marker);
+            // Координаты городов (можно расширить)
+            const cityCoords = {
+                'Riga': [56.9496, 24.1052], 'Moscow': [55.7558, 37.6173], 'Saint Petersburg': [59.9343, 30.3351],
+                'London': [51.5074, -0.1278], 'Berlin': [52.5200, 13.4050], 'Paris': [48.8566, 2.3522],
+                'New York': [40.7128, -74.0060], 'Los Angeles': [34.0522, -118.2437], 'Tokyo': [35.6762, 139.6503],
+                'Beijing': [39.9042, 116.4074], 'Sydney': [-33.8688, 151.2093], 'Dubai': [25.2048, 55.2708]
+            };
+            
+            cityData.forEach((count, key) => {
+                const [city] = key.split('|');
+                const coords = cityCoords[city];
+                if (coords) {
+                    const marker = L.circleMarker(coords, {
+                        radius: Math.min(25, 8 + count * 2),
+                        fillColor: '#667eea',
+                        color: '#764ba2',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.7
+                    }).addTo(map);
+                    marker.bindPopup(`<b>${city}</b><br>👥 ${count} пользователей`);
+                    mapMarkers.push(marker);
+                }
             });
+            
+            if (mapMarkers.length === 0 && cityData.size > 0) {
+                // Если нет координат, показываем центр Европы
+                map.setView([50, 10], 4);
+            }
+        }
+
+        // ============ ПОДОЗРИТЕЛЬНЫЕ ============
+        function isSuspiciousBot(user) {
+            const suspiciousUA = /bot|crawler|scraper|curl|python|java|php|wget|headless/i.test(JSON.stringify(user));
+            const manyIPs = (user.ips?.length || 0) > 3;
+            const countries = new Set();
+            user.ips?.forEach(ip => countries.add(ip.country));
+            const manyCountries = countries.size > 2;
+            return suspiciousUA || manyIPs || manyCountries;
         }
 
         // ============ УМНЫЕ ПОДСКАЗКИ ============
         function updateSmartTips() {
             const tips = [];
-            
-            // Пик активности
             const hourCounts = new Array(24).fill(0);
-            usersData.forEach(u => {
-                if (u.visits?.[0]?.timestamp) hourCounts[new Date(u.visits[0].timestamp).getHours()]++;
-            });
+            usersData.forEach(u => { if (u.last_seen) hourCounts[new Date(u.last_seen).getHours()]++; });
             const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
             tips.push(`📊 Пик активности в ${peakHour}:00 — ${Math.max(...hourCounts)} пользователей`);
             
-            // Подозрительные боты
-            const suspicious = usersData.filter(u => isSuspiciousBot(u));
+            const suspicious = usersData.filter(isSuspiciousBot);
             if (suspicious.length > 0) tips.push(`🤖 Обнаружено ${suspicious.length} подозрительных ботов`);
             
-            // Новые пользователи
             const newToday = usersData.filter(u => u.registered && u.registered.split('T')[0] === new Date().toISOString().split('T')[0]).length;
             if (newToday > 0) tips.push(`🆕 ${newToday} новых пользователей сегодня!`);
             
-            // Retention
-            let returned = 0, total = 0;
-            usersData.forEach(u => {
-                if (u.registered && new Date(u.registered) < new Date(Date.now() - 7*86400000)) {
-                    total++;
-                    if (u.last_seen && new Date(u.last_seen) > new Date(Date.now() - 7*86400000)) returned++;
-                }
-            });
-            const retention = total > 0 ? Math.round(returned/total*100) : 0;
-            if (retention < 30) tips.push(`⚠️ Низкое удержание (${retention}%) — пользователи не возвращаются`);
-            
-            const tipsContainer = document.getElementById('smartTips');
-            tipsContainer.innerHTML = tips.map(t => `<div class="tip-item"><span class="tip-icon">💡</span> ${t}</div>`).join('');
-        }
-
-        // ============ ПОДОЗРИТЕЛЬНЫЕ БОТЫ ============
-        function isSuspiciousBot(user) {
-            // Дата-центр IP
-            const suspiciousASN = [20473, 14061, 16276, 13335, 16509, 14618];
-            const asn = user.ips?.[0]?.asn;
-            const isDatacenter = asn && suspiciousASN.includes(asn);
-            
-            // Странные User-Agent
-            const ua = user.visits?.[0]?.user_agent || '';
-            const suspiciousUA = /bot|crawler|scraper|curl|python|java|php|wget|headless/i.test(ua);
-            
-            // Много IP
-            const manyIPs = (user.ips?.length || 0) > 3;
-            
-            // Много стран
-            const countries = new Set();
-            user.ips?.forEach(ip => countries.add(ip.country));
-            const manyCountries = countries.size > 2;
-            
-            return isDatacenter || suspiciousUA || manyIPs || manyCountries;
+            document.getElementById('smartTips').innerHTML = tips.map(t => `<div class="tip-item">💡 ${t}</div>`).join('');
         }
 
         // ============ ФИЛЬТРЫ ============
         function populateFilters() {
             const countries = new Set();
-            usersData.forEach(u => {
-                if (u.visits?.[0]?.country) countries.add(u.visits[0].country);
-                if (u.ips?.[0]?.country) countries.add(u.ips[0].country);
-            });
+            usersData.forEach(u => { const c = getUserCountry(u); if (c !== '—') countries.add(c); });
             const countrySelect = document.getElementById('countryFilter');
             Array.from(countries).sort().forEach(c => {
                 const opt = document.createElement('option');
@@ -749,96 +361,80 @@
             });
         }
         
+        let showOnlySuspicious = false;
         function applyFilters() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const country = document.getElementById('countryFilter').value;
             const lastSeenDate = document.getElementById('lastSeenFilter').value;
             const device = document.getElementById('deviceFilter').value;
-            const showOnlySuspicious = window.showOnlySuspicious || false;
             
             filteredUsers = usersData.filter(u => {
-                const matchSearch = !search || 
-                    u.id.toString().includes(search) ||
-                    (u.first_name && u.first_name.toLowerCase().includes(search)) ||
-                    (u.username && u.username.toLowerCase().includes(search)) ||
-                    (u.ips && u.ips.some(ip => ip.ip && ip.ip.includes(search)));
-                
-                const matchCountry = !country || 
-                    (u.visits?.[0]?.country === country) || 
-                    (u.ips?.[0]?.country === country);
-                
-                const matchLastSeen = !lastSeenDate || 
-                    (u.last_seen && u.last_seen.split('T')[0] >= lastSeenDate);
-                
-                const matchDevice = !device || 
-                    (u.visits?.[0]?.device === device);
-                
+                const matchSearch = !search || u.id.toString().includes(search) || (u.first_name && u.first_name.toLowerCase().includes(search)) || (u.username && u.username.toLowerCase().includes(search)) || getUserIP(u).includes(search);
+                const matchCountry = !country || getUserCountry(u) === country;
+                const matchLastSeen = !lastSeenDate || (u.last_seen && u.last_seen.split('T')[0] >= lastSeenDate);
+                const matchDevice = !device || (getUserDevice(u) === device);
                 const matchSuspicious = !showOnlySuspicious || isSuspiciousBot(u);
-                
                 return matchSearch && matchCountry && matchLastSeen && matchDevice && matchSuspicious;
             });
             renderUsers();
         }
-        
+
         // ============ РЕНДЕР ============
         function renderUsers() {
             const container = document.getElementById('usersList');
-            if (filteredUsers.length === 0) {
-                container.innerHTML = '<div class="loading">👤 Пользователи не найдены</div>';
-                return;
-            }
+            if (filteredUsers.length === 0) { container.innerHTML = '<div class="loading">👤 Пользователи не найдены</div>'; return; }
             
             container.innerHTML = filteredUsers.map(user => {
-                const name = truncate(user.first_name || 'Без имени', 20);
+                const name = truncate(decodeHtmlEntities(user.first_name || 'Без имени'), 20);
                 const username = truncate(user.username || 'no_username', 20);
-                const country = user.visits?.[0]?.country || user.ips?.[0]?.country || '—';
-                const device = user.visits?.[0]?.device || '—';
-                const initials = (user.first_name || '?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+                const country = getUserCountry(user);
+                const device = getUserDevice(user);
+                const initials = getInitials(user.first_name);
                 const isBot = isSuspiciousBot(user);
-                const suspectClass = isBot ? 'suspect-bot' : '';
                 
-                return `
-                    <div class="user-card ${suspectClass}" onclick="showUserDetails(${user.id})">
-                        <div class="user-card-header">
-                            <div class="user-avatar">${initials}</div>
-                            <div class="user-info">
-                                <div class="user-name">${escapeHtml(name)} ${isBot ? '<span class="bot-badge">🤖 Бот</span>' : ''}</div>
-                                <div class="user-username">@${escapeHtml(username)}</div>
-                            </div>
-                        </div>
-                        <div class="user-stats">
-                            <span><i class="fas fa-chart-simple"></i> ${user.visit_count || 0} виз.</span>
-                            <span><i class="fas fa-map-marker-alt"></i> ${country}</span>
-                            <span><i class="fas fa-mobile-alt"></i> ${device}</span>
-                            <span><i class="fas fa-clock"></i> ${formatRelativeTime(user.last_seen)}</span>
+                return `<div class="user-card ${isBot ? 'suspect-bot' : ''}" onclick="showUserDetails(${user.id})">
+                    <div class="user-card-header">
+                        <div class="user-avatar">${initials}</div>
+                        <div class="user-info">
+                            <div class="user-name">${escapeHtml(name)} ${isBot ? '<span class="bot-badge">🤖 Бот</span>' : ''}</div>
+                            <div class="user-username">@${escapeHtml(username)}</div>
                         </div>
                     </div>
-                `;
+                    <div class="user-stats">
+                        <span><i class="fas fa-chart-simple"></i> ${user.visit_count || 0} виз.</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${country}</span>
+                        <span><i class="fas fa-mobile-alt"></i> ${device}</span>
+                        <span><i class="fas fa-clock"></i> ${formatRelativeTime(user.last_seen)}</span>
+                    </div>
+                </div>`;
             }).join('');
         }
-        
+
         // ============ ДЕТАЛИ С ТАЙМЛАЙНОМ ============
         window.showUserDetails = function(userId) {
             const user = usersData.find(u => u.id === userId);
             if (!user) return;
             
-            const isBot = isSuspiciousBot(user);
-            const modalBody = document.getElementById('modalBody');
+            const visits = user.visits || [];
+            const requestHistory = user.request_history || [];
+            const allVisits = [...visits, ...requestHistory].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             
-            const timeline = user.visits ? user.visits.map(v => `
+            const timeline = allVisits.map(v => `
                 <div class="timeline-item">
                     <small>${new Date(v.timestamp).toLocaleString()}</small>
                     <p>📍 ${v.country || '—'} / ${v.city || '—'}</p>
-                    <p>💻 ${v.device || '—'} / ${v.browser || '—'}</p>
-                    <p>🔗 ${v.referrer || 'прямой переход'}</p>
+                    <p>📱 ${v.device || (v.user_agent?.includes('iPhone') ? 'iPhone' : '—')}</p>
+                    <p>🔗 ${v.referrer || v.referer || 'прямой переход'}</p>
+                    <p>🖥️ ${v.user_agent ? truncate(v.user_agent, 60) : '—'}</p>
                 </div>
-            `).join('') : '<p>Нет данных о визитах</p>';
+            `).join('');
             
+            const modalBody = document.getElementById('modalBody');
             modalBody.innerHTML = `
                 <div class="detail-section">
                     <h4>Основная информация</h4>
                     <div class="detail-row">
-                        <p><strong>${escapeHtml(user.first_name || 'Без имени')}</strong> ${isBot ? '🤖 ПОДОЗРИТЕЛЬНЫЙ' : ''}</p>
+                        <p><strong>${escapeHtml(decodeHtmlEntities(user.first_name || 'Без имени'))}</strong></p>
                         <p>@${escapeHtml(user.username || 'нет username')}</p>
                         <p>ID: ${user.id}</p>
                         <p>📅 Регистрация: ${new Date(user.registered).toLocaleString()}</p>
@@ -849,62 +445,48 @@
                 <div class="detail-section">
                     <h4>🌍 Геолокация</h4>
                     <div class="detail-row">
-                        <p>🌍 Страна: ${user.ips?.[0]?.country || '—'}</p>
-                        <p>🏙️ Город: ${user.ips?.[0]?.city || '—'}</p>
-                        <p>📡 IP: ${user.ips?.[0]?.ip || '—'}</p>
-                        <p>🏢 ISP: ${user.ips?.[0]?.isp || '—'}</p>
-                        <p>🆔 ASN: ${user.ips?.[0]?.asn || '—'}</p>
+                        <p>🌍 Страна: ${getUserCountry(user)}</p>
+                        <p>🏙️ Город: ${getUserCity(user) || '—'}</p>
+                        <p>📡 IP: ${getUserIP(user)}</p>
+                        <p>🏢 ISP: ${getUserISP(user)}</p>
                     </div>
                 </div>
                 
                 <div class="detail-section">
-                    <h4>📜 История визитов (таймлайн)</h4>
-                    ${timeline}
+                    <h4>📜 История визитов (${allVisits.length})</h4>
+                    ${timeline || '<p>Нет данных о визитах</p>'}
                 </div>
                 
                 <button class="block-btn" onclick="blockUser(${user.id})">
                     <i class="fas fa-ban"></i> Добавить в черный список
                 </button>
             `;
-            
             document.getElementById('userModal').classList.add('active');
         };
-        
+
         window.blockUser = function(userId) {
-            const user = usersData.find(u => u.id === userId);
-            if (confirm(`Заблокировать ${user.first_name || user.username}?`)) {
+            if (confirm('Заблокировать пользователя?')) {
                 let blacklist = JSON.parse(localStorage.getItem('blacklist') || '[]');
-                if (!blacklist.includes(userId)) {
-                    blacklist.push(userId);
-                    localStorage.setItem('blacklist', JSON.stringify(blacklist));
-                    alert(`✅ ${user.first_name || user.username} добавлен в черный список`);
-                }
+                if (!blacklist.includes(userId)) blacklist.push(userId);
+                localStorage.setItem('blacklist', JSON.stringify(blacklist));
+                alert('✅ Пользователь добавлен в черный список');
             }
         };
-        
-        // ============ АВТООБНОВЛЕНИЕ ============
-        function startAutoUpdateTimer() {
-            if (autoUpdateInterval) clearInterval(autoUpdateInterval);
-            updateTimer = 30;
-            autoUpdateInterval = setInterval(() => {
-                updateTimer--;
-                document.getElementById('autoUpdateTimer').innerHTML = `🔄 Обновление через ${updateTimer}с`;
-                if (updateTimer <= 0) {
-                    loadUsers();
-                    updateTimer = 30;
-                }
-            }, 1000);
+
+        // ============ ВСПОМОГАТЕЛЬНЫЕ ============
+        function decodeHtmlEntities(str) {
+            if (!str) return '—';
+            return str.replace(/ÃÂÃÂÃÂÃÂ/g, 'А').replace(/ÃÂÃÂÃÂÃÂ/g, '').replace(/[ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ]/g, ' ');
+            return str;
         }
         
-        // ============ ПОКАЗ ТОЛЬКО ПОДОЗРИТЕЛЬНЫХ ============
-        window.showOnlySuspicious = false;
-        document.getElementById('suspectBtn').addEventListener('click', () => {
-            window.showOnlySuspicious = !window.showOnlySuspicious;
-            document.getElementById('suspectBtn').style.background = window.showOnlySuspicious ? '#ef4444' : '#1a1a2e';
-            applyFilters();
-        });
+        function getInitials(name) {
+            if (!name || name === 'Без имени') return '?';
+            const cleaned = decodeHtmlEntities(name);
+            const match = cleaned.match(/[А-Я]/);
+            return match ? match[0] : '?';
+        }
         
-        // ============ ВСПОМОГАТЕЛЬНЫЕ ============
         function truncate(str, max) { if (!str) return '—'; return str.length > max ? str.substring(0, max) + '...' : str; }
         function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
         function formatRelativeTime(dateStr) {
@@ -917,17 +499,30 @@
             return new Date(dateStr).toLocaleDateString();
         }
         
+        function startAutoUpdateTimer() {
+            if (autoUpdateInterval) clearInterval(autoUpdateInterval);
+            updateTimer = 30;
+            autoUpdateInterval = setInterval(() => {
+                updateTimer--;
+                document.getElementById('autoUpdateTimer').innerHTML = `🔄 Обновление через ${updateTimer}с`;
+                if (updateTimer <= 0) { loadUsers(); updateTimer = 30; }
+            }, 1000);
+        }
+
         // ============ ИНИЦИАЛИЗАЦИЯ ============
         document.addEventListener('DOMContentLoaded', () => {
             loadUsers();
-            
             document.getElementById('searchInput').addEventListener('input', applyFilters);
             document.getElementById('countryFilter').addEventListener('change', applyFilters);
             document.getElementById('lastSeenFilter').addEventListener('change', applyFilters);
             document.getElementById('deviceFilter').addEventListener('change', applyFilters);
             document.getElementById('refreshBtn').addEventListener('click', loadUsers);
+            document.getElementById('suspectBtn').addEventListener('click', () => {
+                showOnlySuspicious = !showOnlySuspicious;
+                document.getElementById('suspectBtn').style.background = showOnlySuspicious ? '#ef4444' : '#1a1a2e';
+                applyFilters();
+            });
             
-            // Tabs
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -938,7 +533,6 @@
                 });
             });
             
-            // Modal close
             const modal = document.getElementById('userModal');
             document.querySelector('.modal-close').onclick = () => modal.classList.remove('active');
             modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('active'); };
