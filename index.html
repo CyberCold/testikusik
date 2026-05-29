@@ -2,42 +2,56 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
     <title>Paradise Dashboard - User Management</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
+<body data-theme="dark">
     <div class="dashboard-container">
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <div class="mobile-overlay" id="mobileOverlay"></div>
+        
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="logo">
                 <i class="fas fa-crown"></i>
                 <span>Paradise Dashboard</span>
             </div>
             <nav class="nav-menu">
-                <a href="#" class="nav-item active">
+                <a href="#" class="nav-item active" data-tab="users">
                     <i class="fas fa-users"></i>
                     <span>Пользователи</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="#" class="nav-item" data-tab="analytics">
                     <i class="fas fa-chart-line"></i>
                     <span>Аналитика</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="#" class="nav-item" data-tab="geography">
                     <i class="fas fa-globe"></i>
                     <span>География</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
+                <div class="theme-toggle-wrapper">
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                        <span>Темная тема</span>
+                    </button>
+                </div>
                 <div class="last-update" id="lastUpdate">
                     <i class="fas fa-sync-alt"></i>
                     <span>Обновление...</span>
                 </div>
                 <button class="refresh-btn" id="refreshBtn">
                     <i class="fas fa-arrow-rotate-right"></i>
-                    Обновить
+                    <span>Обновить</span>
                 </button>
             </div>
         </aside>
@@ -61,15 +75,15 @@
                         </select>
                         <select id="deviceFilter">
                             <option value="">Все устройства</option>
-                            <option value="Desktop">Desktop</option>
-                            <option value="Mobile">Mobile</option>
-                            <option value="Tablet">Tablet</option>
+                            <option value="Desktop">💻 Desktop</option>
+                            <option value="Mobile">📱 Mobile</option>
+                            <option value="Tablet">📟 Tablet</option>
                         </select>
                     </div>
                 </div>
             </header>
 
-            <!-- Stats Cards -->
+            <!-- Stats Cards - Scrollable on mobile -->
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-user-plus"></i></div>
@@ -101,38 +115,40 @@
                 </div>
             </div>
 
-            <!-- Users Table -->
-            <div class="users-table-container">
-                <div class="table-header">
-                    <div class="view-toggle">
-                        <button class="toggle-btn active" data-view="table">
-                            <i class="fas fa-table"></i> Таблица
-                        </button>
-                        <button class="toggle-btn" data-view="cards">
-                            <i class="fas fa-th-large"></i> Карточки
-                        </button>
-                    </div>
+            <!-- View Toggle -->
+            <div class="view-toggle-container">
+                <div class="view-toggle">
+                    <button class="toggle-btn active" data-view="table">
+                        <i class="fas fa-table"></i> <span>Таблица</span>
+                    </button>
+                    <button class="toggle-btn" data-view="cards">
+                        <i class="fas fa-th-large"></i> <span>Карточки</span>
+                    </button>
                 </div>
-                
-                <!-- Table View -->
+            </div>
+
+            <!-- Users Table View -->
+            <div class="users-table-container">
                 <div id="tableView" class="table-view active">
-                    <table class="users-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Пользователь</th>
-                                <th>Username</th>
-                                <th>Визитов</th>
-                                <th>Последний визит</th>
-                                <th>Страна</th>
-                                <th>Устройство</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody">
-                            <tr><td colspan="8" class="loading-cell">Загрузка пользователей...</td></tr>
-                        </tbody>
-                    </table>
+                    <div class="table-wrapper">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Пользователь</th>
+                                    <th>Username</th>
+                                    <th>Визитов</th>
+                                    <th>Последний визит</th>
+                                    <th>Страна</th>
+                                    <th>Устройство</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="8" class="loading-cell">Загрузка пользователей...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Cards View -->
@@ -150,9 +166,7 @@
                 <h2>Детальная информация</h2>
                 <button class="modal-close">&times;</button>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Контент загружается динамически -->
-            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
