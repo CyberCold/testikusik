@@ -17,6 +17,7 @@ console.log('Попытка загрузки из:', GITHUB_RAW_URL);
 let usersData = [];
 let filteredUsers = [];
 let currentView = 'table';
+let isMobileMenuOpen = false;
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
@@ -447,8 +448,84 @@ function setupEventListeners() {
     window.onclick = (e) => {
         if (e.target === modal) modal.classList.remove('active');
     };
+    const mobileToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+            mobileOverlay.style.display = 'block';
+            isMobileMenuOpen = true;
+        });
+    }
+    
+    if (mobileOverlay) {
+        mobileOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            mobileOverlay.style.display = 'none';
+            isMobileMenuOpen = false;
+        });
+    }
+    
+    // Закрывать меню при клике на навигацию (на мобильных)
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.style.display = 'none';
+                isMobileMenuOpen = false;
+            }
+        });
+    });
+    
+    // Темная тема
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.body.setAttribute('data-theme', savedTheme);
+    updateThemeButton(savedTheme);
+    
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = document.body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeButton(newTheme);
+    });
+    
+    // Обработка свайпов для меню
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        if (touchEndX - touchStartX > 50 && touchStartX < 50) {
+            // Свайп вправо - открыть меню
+            if (!sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.add('mobile-open');
+                mobileOverlay.style.display = 'block';
+            }
+        }
+        if (touchStartX - touchEndX > 50 && sidebar.classList.contains('mobile-open')) {
+            // Свайп влево - закрыть меню
+            sidebar.classList.remove('mobile-open');
+            mobileOverlay.style.display = 'none';
+        }
+    });
 }
 
+function updateThemeButton(theme) {
+    const themeToggle = document.getElementById('themeToggle');
+    if (theme === 'dark') {
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Светлая тема</span>';
+    } else {
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Темная тема</span>';
+    }
+}
 // Стили для активных вью
 const style = document.createElement('style');
 style.textContent = `
