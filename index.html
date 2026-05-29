@@ -32,10 +32,23 @@
         .filters { display: flex; gap: 8px; flex-wrap: wrap; }
         .filters select, .filters input { flex: 1; background: #1a1a2e; border: 1px solid #2d2d3f; border-radius: 12px; padding: 10px 12px; color: white; font-size: 0.8rem; outline: none; }
         
-        .action-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
+        .action-buttons { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .action-btn { flex: 1; padding: 10px; background: #1a1a2e; border: 1px solid #2d2d3f; border-radius: 12px; color: white; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .action-btn.suspect { background: #7f1a1a; border-color: #991b1b; }
+        .action-btn.suspect.active { background: #ef4444; }
         .action-btn:active { transform: scale(0.97); }
+        
+        /* Панель настроек ботов */
+        .settings-panel { background: #1a1a2e; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid #2d2d3f; }
+        .settings-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: pointer; }
+        .settings-title h4 { font-size: 0.9rem; }
+        .settings-content { display: none; }
+        .settings-content.show { display: block; }
+        .slider-item { margin-bottom: 12px; }
+        .slider-item label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 5px; }
+        input[type="range"] { width: 100%; height: 4px; -webkit-appearance: none; background: #2d2d3f; border-radius: 2px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #667eea; border-radius: 50%; cursor: pointer; }
+        .score-badge { background: #2d2d3f; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; }
         
         .stats-scroll { overflow-x: auto; margin-bottom: 16px; -webkit-overflow-scrolling: touch; }
         .stats-row { display: inline-flex; gap: 10px; padding: 2px; }
@@ -60,6 +73,7 @@
         .user-stats { display: flex; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #2d2d3f; font-size: 0.7rem; flex-wrap: wrap; }
         .user-stats span { display: flex; align-items: center; gap: 5px; color: #9ca3af; }
         .bot-badge { background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; margin-left: 8px; }
+        .bot-score { font-size: 0.65rem; color: #fbbf24; margin-left: 8px; }
         
         .smart-tips { background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 16px; padding: 12px; margin-bottom: 16px; border: 1px solid #2d2d3f; }
         .tip-item { font-size: 0.75rem; padding: 8px 0; border-bottom: 1px solid #2d2d3f; display: flex; align-items: center; gap: 8px; }
@@ -89,6 +103,7 @@
             <h1>👑 Paradise Dashboard</h1>
             <div class="header-stats">
                 <span id="newUsersCount">🆕 Новых сегодня: 0</span>
+                <span id="botCount">🤖 Ботов: 0</span>
             </div>
         </div>
 
@@ -100,6 +115,33 @@
 
         <div id="tab-users" class="tab-content active">
             <div class="smart-tips" id="smartTips"><div class="tip-item">💡 Анализирую данные...</div></div>
+
+            <!-- Панель настроек -->
+            <div class="settings-panel">
+                <div class="settings-title" onclick="document.getElementById('settingsContent').classList.toggle('show')">
+                    <h4><i class="fas fa-sliders-h"></i> Настройки определения ботов</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div id="settingsContent" class="settings-content">
+                    <div class="slider-item">
+                        <label>🎯 Порог бота (сейчас: <span id="botThresholdValue">50</span>) <span class="score-badge">чем выше, тем меньше ботов</span></label>
+                        <input type="range" id="botThreshold" min="20" max="100" value="50" step="5">
+                    </div>
+                    <div class="slider-item">
+                        <label>📡 IP лимит (сейчас: <span id="ipLimitValue">8</span>)</label>
+                        <input type="range" id="ipLimit" min="3" max="20" value="8" step="1">
+                    </label></div>
+                    <div class="slider-item">
+                        <label>🌍 Страны лимит (сейчас: <span id="countryLimitValue">4</span>)</label>
+                        <input type="range" id="countryLimit" min="2" max="10" value="4" step="1">
+                    </div>
+                    <div class="slider-item">
+                        <label>📊 Визиты лимит (сейчас: <span id="visitsLimitValue">15</span>)</label>
+                        <input type="range" id="visitsLimit" min="5" max="50" value="15" step="5">
+                    </div>
+                    <button id="resetBotSettings" class="action-btn" style="margin-top: 10px;">Сбросить настройки</button>
+                </div>
+            </div>
 
             <div class="search-section">
                 <div class="search-box">
@@ -120,7 +162,7 @@
 
             <div class="action-buttons">
                 <button class="action-btn" id="refreshBtn"><i class="fas fa-sync-alt"></i> Обновить</button>
-                <button class="action-btn suspect" id="suspectBtn"><i class="fas fa-robot"></i> Подозрительные</button>
+                <button class="action-btn suspect" id="suspectBtn"><i class="fas fa-robot"></i> Показать ботов</button>
             </div>
 
             <div class="stats-scroll">
@@ -158,14 +200,117 @@
         let usersData = [], filteredUsers = [];
         let hourlyChart, retentionChart, map = null, mapMarkers = [];
         let showOnlySuspicious = false;
+        
+        // Настройки определения ботов (сохраняются в localStorage)
+        let botSettings = {
+            threshold: 50,
+            ipLimit: 8,
+            countryLimit: 4,
+            visitsLimit: 15
+        };
+        
+        function loadBotSettings() {
+            const saved = localStorage.getItem('botSettings');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    botSettings = { ...botSettings, ...parsed };
+                } catch(e) {}
+            }
+            document.getElementById('botThreshold').value = botSettings.threshold;
+            document.getElementById('ipLimit').value = botSettings.ipLimit;
+            document.getElementById('countryLimit').value = botSettings.countryLimit;
+            document.getElementById('visitsLimit').value = botSettings.visitsLimit;
+            document.getElementById('botThresholdValue').textContent = botSettings.threshold;
+            document.getElementById('ipLimitValue').textContent = botSettings.ipLimit;
+            document.getElementById('countryLimitValue').textContent = botSettings.countryLimit;
+            document.getElementById('visitsLimitValue').textContent = botSettings.visitsLimit;
+        }
+        
+        function saveBotSettings() {
+            localStorage.setItem('botSettings', JSON.stringify(botSettings));
+        }
+        
+        // РЕАЛИСТИЧНОЕ ОПРЕДЕЛЕНИЕ БОТОВ
+        function getBotScore(user) {
+            let score = 0;
+            const reasons = [];
+            
+            const ua = JSON.stringify(user.visits?.[0]?.user_agent || user.request_history?.[0]?.user_agent || '').toLowerCase();
+            
+            // 1. Явные боты (реальные краулеры)
+            const explicitBots = ['googlebot', 'yandexbot', 'bingbot', 'baiduspider', 'facebookexternalhit', 
+                                   'twitterbot', 'slackbot', 'discordbot', 'curl', 'wget', 'python-requests', 
+                                   'java', 'php', 'scrapy', 'puppeteer', 'headless', 'phantomjs', 'selenium'];
+            const isExplicitBot = explicitBots.some(b => ua.includes(b));
+            if (isExplicitBot) {
+                score += 80;
+                reasons.push('явный бот');
+            }
+            
+            // 2. Количество IP
+            const ipCount = user.ips?.length || 0;
+            if (ipCount > botSettings.ipLimit) {
+                score += Math.min(40, (ipCount - botSettings.ipLimit) * 5);
+                reasons.push(`много IP (${ipCount})`);
+            }
+            
+            // 3. Количество стран
+            const countries = new Set();
+            user.ips?.forEach(ip => { if (ip.country) countries.add(ip.country); });
+            user.visits?.forEach(v => { if (v.country) countries.add(v.country); });
+            const countryCount = countries.size;
+            if (countryCount > botSettings.countryLimit) {
+                score += Math.min(40, (countryCount - botSettings.countryLimit) * 8);
+                reasons.push(`много стран (${countryCount})`);
+            }
+            
+            // 4. Дата-центр IP (только очевидные)
+            const datacenterASNs = [20473, 14061, 16276, 13335, 16509, 14618, 15169, 8075, 32934, 396982, 2635];
+            const asn = user.ips?.[0]?.asn;
+            if (asn && datacenterASNs.includes(asn)) {
+                score += 30;
+                reasons.push(`дата-центр (AS${asn})`);
+            }
+            
+            // 5. Странный User-Agent
+            if (ua && (ua.length < 20 || (!ua.includes('mozilla') && !ua.includes('applewebkit')))) {
+                score += 20;
+                reasons.push('странный UA');
+            }
+            
+            // 6. Аномально много визитов
+            const visits = user.visits || [];
+            if (visits.length > botSettings.visitsLimit) {
+                score += Math.min(30, (visits.length - botSettings.visitsLimit) * 2);
+                reasons.push(`много визитов (${visits.length})`);
+            }
+            
+            // 7. Пустой профиль (только если нет вообще никакой информации)
+            const hasName = user.first_name && user.first_name.length > 2 && !user.first_name.includes('Ã');
+            const hasUsername = user.username && user.username.length > 2;
+            const hasVisits = visits.length > 0;
+            if (!hasName && !hasUsername && !hasVisits) {
+                score += 15;
+                reasons.push('пустой профиль');
+            }
+            
+            return { score, reasons };
+        }
+        
+        function isSuspiciousBot(user) {
+            const { score } = getBotScore(user);
+            return score >= botSettings.threshold;
+        }
+        
+        function getBotScoreForDisplay(user) {
+            const { score, reasons } = getBotScore(user);
+            return { score, reasons };
+        }
 
-        // Функции для получения данных из JSON (адаптировано под твою структуру)
-        function getUserCity(user) { 
-            return user.ips?.[0]?.city || user.visits?.[0]?.city || user.request_history?.[0]?.city || null; 
-        }
-        function getUserCountry(user) { 
-            return user.ips?.[0]?.country || user.visits?.[0]?.country || user.request_history?.[0]?.country || '—'; 
-        }
+        // Функции для получения данных из JSON
+        function getUserCity(user) { return user.ips?.[0]?.city || user.visits?.[0]?.city || user.request_history?.[0]?.city || null; }
+        function getUserCountry(user) { return user.ips?.[0]?.country || user.visits?.[0]?.country || user.request_history?.[0]?.country || '—'; }
         function getUserDevice(user) { 
             const ua = user.visits?.[0]?.user_agent || user.request_history?.[0]?.user_agent || '';
             if (ua.includes('iPhone')) return 'iPhone';
@@ -175,20 +320,11 @@
             if (ua.includes('Windows') || ua.includes('Mac')) return 'Desktop';
             return user.visits?.[0]?.device || '—';
         }
-        function getUserIP(user) { 
-            return user.ips?.[0]?.ip || user.request_history?.[0]?.ip || '—'; 
-        }
-        function getUserISP(user) { 
-            return user.ips?.[0]?.isp || '—'; 
-        }
-        function getUserASN(user) { 
-            return user.ips?.[0]?.asn || '—'; 
-        }
-        function getUserVisits(user) {
-            return user.visits || [];
-        }
+        function getUserIP(user) { return user.ips?.[0]?.ip || user.request_history?.[0]?.ip || '—'; }
+        function getUserISP(user) { return user.ips?.[0]?.isp || '—'; }
+        function getUserASN(user) { return user.ips?.[0]?.asn || '—'; }
+        function getUserVisits(user) { return user.visits || []; }
 
-        // Загрузка данных (без автообновления)
         async function loadUsers() {
             try {
                 const response = await fetch(GITHUB_RAW_URL, { cache: 'no-store' });
@@ -213,12 +349,14 @@
             const weekAgo = new Date(Date.now() - 7*86400000).toISOString();
             const monthAgo = new Date(Date.now() - 30*86400000).toISOString();
             let daily = 0, weekly = 0, monthly = 0, newToday = 0;
+            let botCount = 0;
             
             usersData.forEach(u => {
                 if (u.last_seen && u.last_seen.split('T')[0] === today) daily++;
                 if (u.last_seen && u.last_seen >= weekAgo) weekly++;
                 if (u.last_seen && u.last_seen >= monthAgo) monthly++;
                 if (u.registered && u.registered.split('T')[0] === today) newToday++;
+                if (isSuspiciousBot(u)) botCount++;
             });
             
             let returned = 0, totalOld = 0;
@@ -236,6 +374,7 @@
             document.getElementById('monthlyActive').textContent = monthly;
             document.getElementById('retentionRate').textContent = retention;
             document.getElementById('newUsersCount').innerHTML = `🆕 Новых сегодня: ${newToday}`;
+            document.getElementById('botCount').innerHTML = `🤖 Ботов: ${botCount} (${Math.round(botCount/usersData.length*100)}%)`;
         }
 
         function updateCharts() {
@@ -280,7 +419,6 @@
             });
         }
 
-        // Карта с реальными координатами городов
         function updateMap() {
             if (!map) {
                 map = L.map('geoMap').setView([56.9496, 24.1052], 5);
@@ -292,34 +430,23 @@
             mapMarkers.forEach(m => map.removeLayer(m));
             mapMarkers = [];
             
-            // Координаты городов мира
             const cityCoords = {
                 'Riga': [56.9496, 24.1052], 'Moscow': [55.7558, 37.6173], 'Saint Petersburg': [59.9343, 30.3351],
                 'London': [51.5074, -0.1278], 'Berlin': [52.5200, 13.4050], 'Paris': [48.8566, 2.3522],
-                'New York': [40.7128, -74.0060], 'Los Angeles': [34.0522, -118.2437], 'Chicago': [41.8781, -87.6298],
-                'Tokyo': [35.6762, 139.6503], 'Osaka': [34.6937, 135.5023], 'Beijing': [39.9042, 116.4074],
-                'Shanghai': [31.2304, 121.4737], 'Sydney': [-33.8688, 151.2093], 'Melbourne': [-37.8136, 144.9631],
-                'Dubai': [25.2048, 55.2708], 'Istanbul': [41.0082, 28.9784], 'Rome': [41.9028, 12.4964],
-                'Madrid': [40.4168, -3.7038], 'Amsterdam': [52.3676, 4.9041], 'Vienna': [48.2082, 16.3738],
-                'Warsaw': [52.2297, 21.0122], 'Prague': [50.0755, 14.4378], 'Budapest': [47.4979, 19.0402],
-                'Kyiv': [50.4501, 30.5234], 'Minsk': [53.9045, 27.5615], 'Almaty': [43.2220, 76.8512]
+                'New York': [40.7128, -74.0060], 'Los Angeles': [34.0522, -118.2437], 'Tokyo': [35.6762, 139.6503],
+                'Beijing': [39.9042, 116.4074], 'Sydney': [-33.8688, 151.2093], 'Dubai': [25.2048, 55.2708],
+                'Kyiv': [50.4501, 30.5234], 'Minsk': [53.9045, 27.5615], 'Warsaw': [52.2297, 21.0122]
             };
             
             const cityCounts = new Map();
             usersData.forEach(u => {
                 const city = getUserCity(u);
-                if (city && cityCounts.has(city)) {
-                    cityCounts.set(city, cityCounts.get(city) + 1);
-                } else if (city) {
-                    cityCounts.set(city, 1);
-                }
+                if (city) cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
             });
             
-            let hasMarkers = false;
             cityCounts.forEach((count, city) => {
                 const coords = cityCoords[city];
                 if (coords) {
-                    hasMarkers = true;
                     const radius = Math.min(30, 8 + Math.floor(count / 2));
                     const marker = L.circleMarker(coords, {
                         radius: radius,
@@ -333,25 +460,6 @@
                     mapMarkers.push(marker);
                 }
             });
-            
-            if (!hasMarkers && cityCounts.size > 0) {
-                // Если нет совпадений в словаре, показываем центр
-                map.setView([50, 10], 4);
-            } else if (hasMarkers) {
-                // Центрируем на первый маркер
-                const firstCity = Array.from(cityCounts.keys())[0];
-                const coords = cityCoords[firstCity];
-                if (coords) map.setView(coords, 5);
-            }
-        }
-
-        function isSuspiciousBot(user) {
-            const suspiciousUA = /bot|crawler|scraper|curl|python|java|php|wget|headless/i.test(JSON.stringify(user));
-            const manyIPs = (user.ips?.length || 0) > 3;
-            const countries = new Set();
-            user.ips?.forEach(ip => countries.add(ip.country));
-            const manyCountries = countries.size > 2;
-            return suspiciousUA || manyIPs || manyCountries;
         }
 
         function updateSmartTips() {
@@ -362,7 +470,7 @@
             tips.push(`📊 Пик активности в ${peakHour}:00 — ${Math.max(...hourCounts)} пользователей`);
             
             const suspicious = usersData.filter(isSuspiciousBot);
-            if (suspicious.length > 0) tips.push(`🤖 Обнаружено ${suspicious.length} подозрительных ботов`);
+            if (suspicious.length > 0) tips.push(`🤖 Обнаружено ${suspicious.length} ботов (порог: ${botSettings.threshold})`);
             
             const newToday = usersData.filter(u => u.registered && u.registered.split('T')[0] === new Date().toISOString().split('T')[0]).length;
             if (newToday > 0) tips.push(`🆕 ${newToday} новых пользователей сегодня!`);
@@ -408,20 +516,20 @@
             
             container.innerHTML = filteredUsers.map(user => {
                 let name = user.first_name || 'Без имени';
-                // Исправляем кракозябры
-                name = name.replace(/[ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ]/g, '');
+                name = name.replace(/[ÃÂÃÂÃÂÃÂ]/g, '');
                 if (name.length > 20) name = name.substring(0, 20) + '...';
                 const username = (user.username && user.username !== '') ? user.username : 'нет username';
                 const country = getUserCountry(user);
                 const device = getUserDevice(user);
                 const initials = name !== 'Без имени' && name.length > 0 ? name.charAt(0).toUpperCase() : '?';
                 const isBot = isSuspiciousBot(user);
+                const { score } = getBotScoreForDisplay(user);
                 
                 return `<div class="user-card ${isBot ? 'suspect-bot' : ''}" onclick="showUserDetails(${user.id})">
                     <div class="user-card-header">
                         <div class="user-avatar">${initials}</div>
                         <div class="user-info">
-                            <div class="user-name">${escapeHtml(name)} ${isBot ? '<span class="bot-badge">🤖 Бот</span>' : ''}</div>
+                            <div class="user-name">${escapeHtml(name)} ${isBot ? '<span class="bot-badge">🤖 Бот</span>' : ''}<span class="bot-score">[${score}]</span></div>
                             <div class="user-username">@${escapeHtml(username)}</div>
                         </div>
                     </div>
@@ -439,6 +547,7 @@
             const user = usersData.find(u => u.id === userId);
             if (!user) return;
             
+            const { score, reasons } = getBotScoreForDisplay(user);
             const visits = getUserVisits(user);
             const requestHistory = user.request_history || [];
             const allVisits = [...visits, ...requestHistory].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -461,11 +570,13 @@
                 <div class="detail-section">
                     <h4>Основная информация</h4>
                     <div class="detail-row">
-                        <p><strong>${escapeHtml(name)}</strong></p>
+                        <p><strong>${escapeHtml(name)}</strong> ${score >= botSettings.threshold ? '<span class="bot-badge">🤖 Бот</span>' : ''}</p>
                         <p>@${escapeHtml(user.username || 'нет username')}</p>
                         <p>ID: ${user.id}</p>
                         <p>📅 Регистрация: ${new Date(user.registered).toLocaleString()}</p>
                         <p>🕐 Последний визит: ${new Date(user.last_seen).toLocaleString()}</p>
+                        <p>🎯 Оценка бота: <strong>${score}</strong> / ${botSettings.threshold} (порог)</p>
+                        ${reasons.length > 0 ? `<p>⚠️ Причины: ${reasons.join(', ')}</p>` : '<p>✅ Признаков бота не обнаружено</p>'}
                     </div>
                 </div>
                 
@@ -513,9 +624,48 @@
             return new Date(dateStr).toLocaleDateString();
         }
 
+        function reapplyBotDetection() {
+            updateStats();
+            updateSmartTips();
+            applyFilters();
+        }
+
         // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
+            loadBotSettings();
             loadUsers();
+            
+            // Настройки ботов
+            document.getElementById('botThreshold').addEventListener('input', (e) => {
+                botSettings.threshold = parseInt(e.target.value);
+                document.getElementById('botThresholdValue').textContent = botSettings.threshold;
+                saveBotSettings();
+                reapplyBotDetection();
+            });
+            document.getElementById('ipLimit').addEventListener('input', (e) => {
+                botSettings.ipLimit = parseInt(e.target.value);
+                document.getElementById('ipLimitValue').textContent = botSettings.ipLimit;
+                saveBotSettings();
+                reapplyBotDetection();
+            });
+            document.getElementById('countryLimit').addEventListener('input', (e) => {
+                botSettings.countryLimit = parseInt(e.target.value);
+                document.getElementById('countryLimitValue').textContent = botSettings.countryLimit;
+                saveBotSettings();
+                reapplyBotDetection();
+            });
+            document.getElementById('visitsLimit').addEventListener('input', (e) => {
+                botSettings.visitsLimit = parseInt(e.target.value);
+                document.getElementById('visitsLimitValue').textContent = botSettings.visitsLimit;
+                saveBotSettings();
+                reapplyBotDetection();
+            });
+            document.getElementById('resetBotSettings').addEventListener('click', () => {
+                botSettings = { threshold: 50, ipLimit: 8, countryLimit: 4, visitsLimit: 15 };
+                saveBotSettings();
+                loadBotSettings();
+                reapplyBotDetection();
+            });
             
             document.getElementById('searchInput').addEventListener('input', applyFilters);
             document.getElementById('countryFilter').addEventListener('change', applyFilters);
@@ -524,7 +674,7 @@
             document.getElementById('refreshBtn').addEventListener('click', loadUsers);
             document.getElementById('suspectBtn').addEventListener('click', () => {
                 showOnlySuspicious = !showOnlySuspicious;
-                document.getElementById('suspectBtn').style.background = showOnlySuspicious ? '#ef4444' : '#1a1a2e';
+                document.getElementById('suspectBtn').classList.toggle('active', showOnlySuspicious);
                 applyFilters();
             });
             
