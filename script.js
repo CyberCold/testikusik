@@ -1,5 +1,17 @@
-// Конфигурация
-const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/CyberCold/Paradise/main/users.json';
+// КОНФИГУРАЦИЯ - ИЗМЕНИТЕ ЭТИ ПАРАМЕТРЫ
+const GITHUB_USERNAME = 'CyberCold';
+const GITHUB_REPO = 'Paradise';
+const USERS_FILE = 'users.json';
+const USERS_FILE_PATH = ''; // Если файл в папке, укажите: 'data/' или 'config/'
+
+// ФОРМИРУЕМ ПРАВИЛЬНЫЙ URL
+const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${USERS_FILE_PATH}${USERS_FILE}`;
+
+// Альтернативные URL (если не работает)
+const GITHUB_RAW_URL_MASTER = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/master/${USERS_FILE_PATH}${USERS_FILE}`;
+const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${USERS_FILE_PATH}${USERS_FILE}`;
+
+console.log('Попытка загрузки из:', GITHUB_RAW_URL);
 
 // Глобальные переменные
 let usersData = [];
@@ -8,36 +20,117 @@ let currentView = 'table';
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
-    loadUsers();
+    loadUsersWithFallback();
     setupEventListeners();
 });
 
-// Загрузка пользователей с GitHub
-async function loadUsers() {
-    showLoading();
+// Загрузка с fallback на разные URL
+async function loadUsersWithFallback() {
+    showLoading('Проверка доступа к GitHub...');
+    
     try {
-        const response = await fetch(GITHUB_RAW_URL, {
+        // Сначала пробуем main
+        console.log('Пробуем загрузить из:', GITHUB_RAW_URL);
+        let data = await tryLoadFromUrl(GITHUB_RAW_URL);
+        
+        if (!data) {
+            console.log('Не удалось, пробуем master...');
+            data = await tryLoadFromUrl(GITHUB_RAW_URL_MASTER);
+        }
+        
+        if (!data) {
+            console.log('Пробуем через GitHub API...');
+            data = await tryLoadFromApi();
+        }
+        
+        if (data) {
+            processUsersData(data);
+        } else {
+            throw new Error('Не удалось загрузить данные ни с одного из URL');
+        }
+        
+    } catch (error) {
+        console.error('Все попытки загрузки не удались:', error);
+        showError(`
+            <strong>❌ Ошибка загрузки данных</strong><br><br>
+            <strong>Проверьте следующие моменты:</strong><br>
+            1. Репозиторий существует: <code>${GITHUB_USERNAME}/${GITHUB_REPO}</code><br>
+            2. Файл существует: <code>${USERS_FILE}</code><br>
+            3. Репозиторий публичный (или добавлен токен)<br>
+            4. Правильный путь к файлу<br><br>
+            <strong>Текущий URL:</strong><br>
+            <code>${GITHUB_RAW_URL}</code><br><br>
+            <button onclick="openTestUrl()" class="details-btn">🔗 Проверить URL в новой вкладке</button>
+            <button onclick="location.reload()" class="details-btn" style="margin-left: 10px;">🔄 Попробовать снова</button>
+        `);
+    }
+}
+
+// Попытка загрузить из URL
+async function tryLoadFromUrl(url) {
+    try {
+        console.log('Загрузка:', url);
+        const response = await fetch(url, {
             cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        
+        if (!response.ok) {
+            console.log(`HTTP ${response.status}: ${response.statusText}`);
+            return null;
+        }
+        
+        const data = await response.json();
+        console.log('Успешно загружено! Количество пользователей:', Object.keys(data).length);
+        return data;
+        
+    } catch (error) {
+        console.log(`Ошибка при загрузке ${url}:`, error.message);
+        return null;
+    }
+}
+
+// Попытка загрузить через GitHub API
+async function tryLoadFromApi() {
+    try {
+        const response = await fetch(GITHUB_API_URL, {
             headers: {
-                'Cache-Control': 'no-cache'
+                'Accept': 'application/vnd.github.v3+json'
             }
         });
         
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) return null;
         
-        const data = await response.json();
-        usersData = Object.values(data);
-        filteredUsers = [...usersData];
-        
-        updateStats();
-        populateCountryFilter();
-        renderUsers();
-        updateLastUpdateTime();
+        const fileInfo = await response.json();
+        const content = atob(fileInfo.content); // Декодируем base64
+        const data = JSON.parse(content);
+        console.log('Загружено через API! Пользователей:', Object.keys(data).length);
+        return data;
         
     } catch (error) {
-        console.error('Ошибка загрузки:', error);
-        showError('Не удалось загрузить данные пользователей. Проверьте URL и доступ к GitHub.');
+        console.log('API загрузка не удалась:', error);
+        return null;
     }
+}
+
+// Обработка данных пользователей
+function processUsersData(data) {
+    // Проверяем структуру данных
+    if (Array.isArray(data)) {
+        usersData = data;
+    } else if (typeof data === 'object' && data !== null) {
+        // Если объект с ключами-айдишниками
+        usersData = Object.values(data);
+    } else {
+        throw new Error('Неверный формат данных');
+    }
+    
+    filteredUsers = [...usersData];
+    updateStats();
+    populateCountryFilter();
+    renderUsers();
+    updateLastUpdateTime();
+    showNotification(`✅ Загружено ${usersData.length} пользователей`, 'success');
 }
 
 // Обновление статистики
@@ -53,11 +146,14 @@ function updateStats() {
             const lastSeenDate = new Date(user.last_seen).toISOString().split('T')[0];
             if (lastSeenDate === today) activeToday++;
         }
+        
+        // Собираем страны из визитов или IP
         if (user.visits && user.visits.length > 0) {
             user.visits.forEach(visit => {
                 if (visit.country) uniqueCountries.add(visit.country);
             });
-        } else if (user.ips && user.ips.length > 0) {
+        }
+        if (user.ips && user.ips.length > 0) {
             user.ips.forEach(ip => {
                 if (ip.country) uniqueCountries.add(ip.country);
             });
@@ -68,7 +164,7 @@ function updateStats() {
     document.getElementById('totalVisits').textContent = totalVisits;
     document.getElementById('totalCountries').textContent = uniqueCountries.size;
     document.getElementById('activeToday').textContent = activeToday;
-    document.getElementById('statsText').textContent = `Всего ${totalUsers} пользователей, ${totalVisits} визитов`;
+    document.getElementById('statsText').innerHTML = `📊 Всего ${totalUsers} пользователей, ${totalVisits} визитов, ${uniqueCountries.size} стран`;
 }
 
 // Заполнение фильтра стран
@@ -79,7 +175,8 @@ function populateCountryFilter() {
             user.visits.forEach(visit => {
                 if (visit.country) countries.add(visit.country);
             });
-        } else if (user.ips && user.ips.length > 0) {
+        }
+        if (user.ips && user.ips.length > 0) {
             user.ips.forEach(ip => {
                 if (ip.country) countries.add(ip.country);
             });
@@ -87,6 +184,7 @@ function populateCountryFilter() {
     });
     
     const countryFilter = document.getElementById('countryFilter');
+    countryFilter.innerHTML = '<option value="">Все страны</option>';
     Array.from(countries).sort().forEach(country => {
         const option = document.createElement('option');
         option.value = country;
@@ -102,25 +200,21 @@ function filterUsers() {
     const device = document.getElementById('deviceFilter').value;
     
     filteredUsers = usersData.filter(user => {
-        // Поиск
         const matchesSearch = !searchTerm || 
             user.first_name?.toLowerCase().includes(searchTerm) ||
             user.username?.toLowerCase().includes(searchTerm) ||
-            user.id.toString().includes(searchTerm);
+            user.id?.toString().includes(searchTerm);
         
-        // Фильтр по стране
         let matchesCountry = !country;
-        if (!matchesCountry) {
-            if (user.visits && user.visits.length > 0) {
-                matchesCountry = user.visits.some(v => v.country === country);
-            } else if (user.ips && user.ips.length > 0) {
-                matchesCountry = user.ips.some(ip => ip.country === country);
-            }
+        if (!matchesCountry && user.visits) {
+            matchesCountry = user.visits.some(v => v.country === country);
+        }
+        if (!matchesCountry && user.ips) {
+            matchesCountry = user.ips.some(ip => ip.country === country);
         }
         
-        // Фильтр по устройству
         let matchesDevice = !device;
-        if (!matchesDevice && user.visits && user.visits.length > 0) {
+        if (!matchesDevice && user.visits) {
             matchesDevice = user.visits.some(v => v.device === device);
         }
         
@@ -139,11 +233,10 @@ function renderUsers() {
     }
 }
 
-// Рендер таблицы
 function renderTableView() {
     const tbody = document.getElementById('usersTableBody');
     if (filteredUsers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="loading-cell">Пользователи не найдены</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="loading-cell">👤 Пользователи не найдены</td></tr>';
         return;
     }
     
@@ -153,28 +246,27 @@ function renderTableView() {
             <td>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div class="user-avatar">${getInitials(user.first_name)}</div>
-                    <strong>${user.first_name || 'N/A'}</strong>
+                    <strong>${escapeHtml(user.first_name || 'N/A')}</strong>
                 </div>
             </td>
-            <td>${user.username || '—'}</td>
+            <td>${escapeHtml(user.username || '—')}</td>
             <td>${user.visit_count || 0}</td>
             <td>${formatDate(user.last_seen)}</td>
             <td>${getUserCountry(user)}</td>
             <td>${getUserDevice(user)}</td>
             <td>
                 <button class="details-btn" onclick="showUserDetails(${user.id})">
-                    <i class="fas fa-info-circle"></i> Детали
+                    📋 Детали
                 </button>
             </td>
         </tr>
     `).join('');
 }
 
-// Рендер карточек
 function renderCardsView() {
     const cardsView = document.getElementById('cardsView');
     if (filteredUsers.length === 0) {
-        cardsView.innerHTML = '<div class="loading-state">Пользователи не найдены</div>';
+        cardsView.innerHTML = '<div class="loading-state">👤 Пользователи не найдены</div>';
         return;
     }
     
@@ -182,36 +274,21 @@ function renderCardsView() {
         <div class="user-card">
             <div class="card-header">
                 <div class="user-avatar">${getInitials(user.first_name)}</div>
-                <div>
-                    <h3>${user.first_name || 'Без имени'}</h3>
-                    <p style="color: #718096; font-size: 0.85rem;">@${user.username || 'no_username'}</p>
+                <div style="flex: 1;">
+                    <h3>${escapeHtml(user.first_name || 'Без имени')}</h3>
+                    <p style="color: #718096; font-size: 0.85rem;">@${escapeHtml(user.username || 'no_username')}</p>
                 </div>
                 <div class="card-badge">ID: ${user.id}</div>
             </div>
             <div class="card-info">
-                <div class="info-row">
-                    <span>📊 Визитов:</span>
-                    <strong>${user.visit_count || 0}</strong>
-                </div>
-                <div class="info-row">
-                    <span>🕐 Последний визит:</span>
-                    <span>${formatDate(user.last_seen)}</span>
-                </div>
-                <div class="info-row">
-                    <span>🌍 Страна:</span>
-                    <span>${getUserCountry(user)}</span>
-                </div>
-                <div class="info-row">
-                    <span>💻 Устройство:</span>
-                    <span>${getUserDevice(user)}</span>
-                </div>
-                <div class="info-row">
-                    <span>📅 Регистрация:</span>
-                    <span>${formatDate(user.registered)}</span>
-                </div>
+                <div class="info-row"><span>📊 Визитов:</span><strong>${user.visit_count || 0}</strong></div>
+                <div class="info-row"><span>🕐 Последний визит:</span><span>${formatDate(user.last_seen)}</span></div>
+                <div class="info-row"><span>🌍 Страна:</span><span>${getUserCountry(user)}</span></div>
+                <div class="info-row"><span>💻 Устройство:</span><span>${getUserDevice(user)}</span></div>
+                <div class="info-row"><span>📅 Регистрация:</span><span>${formatDate(user.registered)}</span></div>
             </div>
             <button class="details-btn" style="width: 100%; margin-top: 15px;" onclick="showUserDetails(${user.id})">
-                <i class="fas fa-info-circle"></i> Подробнее
+                🔍 Подробнее
             </button>
         </div>
     `).join('');
@@ -227,10 +304,10 @@ window.showUserDetails = function(userId) {
     
     modalBody.innerHTML = `
         <div style="margin-bottom: 20px;">
-            <h3>${user.first_name || 'Пользователь'}</h3>
-            <p>@${user.username || 'нет username'}</p>
-            <p><strong>ID:</strong> ${user.id}</p>
-            <p><strong>Источник:</strong> ${user.source || 'неизвестно'}</p>
+            <h3>${escapeHtml(user.first_name || 'Пользователь')}</h3>
+            <p>@${escapeHtml(user.username || 'нет username')}</p>
+            <p><strong>🆔 ID:</strong> ${user.id}</p>
+            <p><strong>📌 Источник:</strong> ${user.source || 'неизвестно'}</p>
         </div>
         
         <div style="margin-bottom: 20px;">
@@ -240,29 +317,31 @@ window.showUserDetails = function(userId) {
             <p><strong>Всего визитов:</strong> ${user.visit_count || 0}</p>
         </div>
         
-        <div style="margin-bottom: 20px;">
-            <h4>🌍 Геолокация</h4>
-            ${user.ips && user.ips.length > 0 ? user.ips.map(ip => `
-                <div style="background: #f7fafc; padding: 10px; margin: 10px 0; border-radius: 8px;">
-                    <p><strong>IP:</strong> ${ip.ip}</p>
-                    <p><strong>Страна:</strong> ${ip.country || '—'} (${ip.city || '—'})</p>
-                    <p><strong>ISP:</strong> ${ip.isp || '—'}</p>
-                    <p><strong>Координаты:</strong> ${ip.lat}, ${ip.lon}</p>
-                    <p><strong>Визитов с этого IP:</strong> ${ip.visits}</p>
-                </div>
-            `).join('') : '<p>Нет данных об IP</p>'}
-        </div>
+        ${user.ips && user.ips.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+                <h4>🌍 IP адреса и геолокация</h4>
+                ${user.ips.map(ip => `
+                    <div style="background: #f7fafc; padding: 12px; margin: 10px 0; border-radius: 8px;">
+                        <p><strong>📡 IP:</strong> ${ip.ip}</p>
+                        <p><strong>📍 Страна:</strong> ${ip.country || '—'} ${ip.city ? `(${ip.city})` : ''}</p>
+                        <p><strong>🏢 ISP:</strong> ${ip.isp || '—'}</p>
+                        <p><strong>🗺️ Координаты:</strong> ${ip.lat || '—'}, ${ip.lon || '—'}</p>
+                        <p><strong>📊 Визитов с этого IP:</strong> ${ip.visits}</p>
+                    </div>
+                `).join('')}
+            </div>
+        ` : '<p>❌ Нет данных об IP</p>'}
         
         ${user.visits && user.visits.length > 0 ? `
             <div>
-                <h4>📱 Последний визит (детали)</h4>
-                <div style="background: #f7fafc; padding: 10px; border-radius: 8px;">
-                    <p><strong>Устройство:</strong> ${user.visits[0].device || '—'}</p>
-                    <p><strong>Браузер:</strong> ${user.visits[0].browser || '—'} ${user.visits[0].browser_version || ''}</p>
-                    <p><strong>ОС:</strong> ${user.visits[0].os || '—'} ${user.visits[0].os_version || ''}</p>
-                    <p><strong>Язык:</strong> ${user.visits[0].language || '—'}</p>
-                    <p><strong>Referrer:</strong> ${user.visits[0].referrer || '—'}</p>
-                    <p><strong>User Agent:</strong> <span style="font-size: 0.8rem;">${user.visits[0].user_agent || '—'}</span></p>
+                <h4>📱 Детали последнего визита</h4>
+                <div style="background: #f7fafc; padding: 12px; border-radius: 8px;">
+                    <p><strong>💻 Устройство:</strong> ${user.visits[0].device || '—'}</p>
+                    <p><strong>🌐 Браузер:</strong> ${user.visits[0].browser || '—'} ${user.visits[0].browser_version || ''}</p>
+                    <p><strong>⚙️ ОС:</strong> ${user.visits[0].os || '—'} ${user.visits[0].os_version || ''}</p>
+                    <p><strong>🔤 Язык:</strong> ${user.visits[0].language || '—'}</p>
+                    <p><strong>🔗 Referrer:</strong> ${user.visits[0].referrer || '—'}</p>
+                    <p><strong>📝 User Agent:</strong> <span style="font-size: 0.75rem; word-break: break-all;">${escapeHtml(user.visits[0].user_agent || '—')}</span></p>
                 </div>
             </div>
         ` : ''}
@@ -291,20 +370,23 @@ function formatDate(dateString) {
 }
 
 function getUserCountry(user) {
-    if (user.visits && user.visits.length > 0 && user.visits[0].country) {
-        return user.visits[0].country;
-    }
-    if (user.ips && user.ips.length > 0 && user.ips[0].country) {
-        return user.ips[0].country;
-    }
+    if (user.visits?.[0]?.country) return user.visits[0].country;
+    if (user.ips?.[0]?.country) return user.ips[0].country;
     return '—';
 }
 
 function getUserDevice(user) {
-    if (user.visits && user.visits.length > 0 && user.visits[0].device) {
-        return user.visits[0].device;
-    }
-    return '—';
+    return user.visits?.[0]?.device || '—';
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
 }
 
 function updateLastUpdateTime() {
@@ -315,25 +397,39 @@ function updateLastUpdateTime() {
     `;
 }
 
-function showLoading() {
-    document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="8" class="loading-cell">Загрузка данных с GitHub...</td></tr>';
-    document.getElementById('cardsView').innerHTML = '<div class="loading-state">Загрузка данных...</div>';
+function showLoading(message = 'Загрузка данных с GitHub...') {
+    document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="8" class="loading-cell">⏳ ${message}</td></tr>`;
+    document.getElementById('cardsView').innerHTML = `<div class="loading-state">⏳ ${message}</div>`;
 }
 
 function showError(message) {
-    document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="8" class="loading-cell" style="color: red;">${message}</td></tr>`;
+    document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="8" class="loading-cell" style="color: #e53e3e;">${message}</td></tr>`;
+    document.getElementById('cardsView').innerHTML = `<div class="loading-state" style="color: #e53e3e;">${message}</div>`;
 }
 
+function showNotification(message, type = 'info') {
+    // Простое уведомление в консоль и временное сообщение в заголовке
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    const statsText = document.getElementById('statsText');
+    const originalText = statsText.innerHTML;
+    statsText.innerHTML = `🔔 ${message}`;
+    setTimeout(() => {
+        if (statsText.innerHTML.includes(message)) {
+            statsText.innerHTML = originalText;
+        }
+    }, 3000);
+}
+
+window.openTestUrl = function() {
+    window.open(GITHUB_RAW_URL, '_blank');
+};
+
 function setupEventListeners() {
-    // Поиск и фильтры
     document.getElementById('searchInput').addEventListener('input', filterUsers);
     document.getElementById('countryFilter').addEventListener('change', filterUsers);
     document.getElementById('deviceFilter').addEventListener('change', filterUsers);
+    document.getElementById('refreshBtn').addEventListener('click', () => loadUsersWithFallback());
     
-    // Обновление
-    document.getElementById('refreshBtn').addEventListener('click', () => loadUsers());
-    
-    // Переключение вида
     document.querySelectorAll('.toggle-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
@@ -345,7 +441,6 @@ function setupEventListeners() {
         });
     });
     
-    // Модальное окно
     const modal = document.getElementById('userModal');
     const closeBtn = modal.querySelector('.modal-close');
     closeBtn.onclick = () => modal.classList.remove('active');
@@ -354,7 +449,7 @@ function setupEventListeners() {
     };
 }
 
-// Добавляем стили для active view
+// Стили для активных вью
 const style = document.createElement('style');
 style.textContent = `
     .table-view { display: none; }
@@ -362,5 +457,6 @@ style.textContent = `
     .table-view.active { display: block; }
     .cards-view.active { display: grid; }
     .loading-cell { text-align: center; padding: 40px; color: #a0aec0; }
+    code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 `;
 document.head.appendChild(style);
